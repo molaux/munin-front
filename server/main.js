@@ -44,7 +44,7 @@ const typeDefs = `
 `
 // Object.assign(schema._typeMap.JSON, GraphQLJSON);
 
-const munin = new MuninDB('/home/marco/src/munin-db-test')
+const munin = new MuninDB('/path/to/munin/rrd/db')
 
 const resolvers = {
 
