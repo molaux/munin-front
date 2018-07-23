@@ -24,7 +24,7 @@ class DomainListItem extends Component {
         </ListItem>
         <Collapse in={!this.props.collapse} timeout='auto' unmountOnExit>
           <List component='div' disablePadding>
-            { domain.hosts && domain.hosts.map((host, index) =>
+            { domain.hosts && domain.hosts.slice().sort((a, b) => a.name.localeCompare(b.name)).map((host, index) =>
               <ListItem button
                 className={`${this.props.match.params.host === host.name && this.props.match.params.domain === domain.name ? classes.selected : ''} ${classes.nested}`}
                 key={index}

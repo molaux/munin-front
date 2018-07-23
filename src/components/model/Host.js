@@ -68,7 +68,7 @@ class Host extends Component {
           <List
             component='nav'
             subheader={<ListSubheader component='div' className={classes.drawerTitle}>Categories</ListSubheader>}>
-            {this.state.categories && Object.values(this.state.categories).map((category, index) =>
+            {this.state.categories && Object.values(this.state.categories).slice().sort((a, b) => a.name.localeCompare(b.name)).map((category, index) =>
               <ListItem
                 key={index}
                 onClick={this.handleCategorySelection.bind(this, category)}

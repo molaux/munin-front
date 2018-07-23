@@ -17,7 +17,7 @@ class Category extends Component {
     if (this.props.data.loading) {
       return <div className={classes.root}><Center><CircularProgress /></Center></div>
     } else {
-      return this.props.data.domain.host.probesByCategory.map((probe, index) =>
+      return this.props.data.domain.host.probesByCategory.slice().sort((a, b) => a.infos.graph_title.value.localeCompare(b.infos.graph_title.value)).map((probe, index) =>
         <Paper key={index} elevation={4} className={classes.paper} >
           <Typography variant='headline' component='h3'>{probe.infos.graph_title.value}</Typography>
           { probe.infos.graph_info ? <Typography component='p'>{probe.infos.graph_info.value}</Typography> : '' }
