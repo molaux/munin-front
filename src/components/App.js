@@ -17,6 +17,8 @@ import AppBar from 'material-ui/AppBar'
 import Toolbar from 'material-ui/Toolbar'
 import Grid from 'material-ui/Grid'
 import Divider from 'material-ui/Divider'
+import FormControlLabel from 'material-ui/Form/FormControlLabel';
+import Checkbox from 'material-ui/Checkbox';
 
 import { MuiPickersUtilsProvider, DateTimePicker } from 'material-ui-pickers'
 import KeyboardArrowLeft from 'material-ui-icons/KeyboardArrowLeft'
@@ -41,6 +43,7 @@ class App extends Component {
     super(props)
     this.state = {
       domains: {},
+      realtime: true,
       selectedHost: null,
       timeRange: {
         start: strtotime('1 days ago'),
@@ -58,6 +61,7 @@ class App extends Component {
         end: new Date(props.match.params.to)
       }
     }
+
   }
 
   toggleDomainCollapse (domain) {
@@ -71,6 +75,38 @@ class App extends Component {
     }
 
     this.setState(state)
+  }
+
+  handleCheckRealtime (event) {
+    this.setState({ realtime: event.target.checked })
+    if (event.target.checked) {
+      this.launchAutoRefresh()
+    } else {
+      this.stopAutoRefresh()
+    }
+  }
+
+  launchAutoRefresh () {
+    this.refreshTimerId = setInterval(
+      this.updateTimerangeFromCurrent.bind(this),
+      5 * 60 * 1000
+    )
+    this.updateTimerangeFromCurrent()
+
+  }
+
+  stopAutoRefresh () {
+    clearInterval(this.refreshTimerId)
+  }
+
+  updateTimerangeFromCurrent () {
+    let now = new Date()
+    let newState = { timeRange: {
+      start: subDays(now, 1),
+      end: now
+    } }
+
+    this.setState(newState)
   }
 
   componentWillReceiveProps (props) {
@@ -103,6 +139,22 @@ class App extends Component {
     }
   }
 
+  // Reload periodically list of Domains / Hosts
+  componentDidMount() {
+    this.refetchTimerId = setInterval(
+      () => this.props.data.refetch(),
+      5 * 60 * 1000
+    )
+    if (this.state.realtime) {
+      this.launchAutoRefresh()
+    }
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.refetchTimerId)
+    clearInterval(this.refreshTimerId)
+  }
+
   render () {
     let { classes } = this.props
     return (
@@ -122,6 +174,7 @@ class App extends Component {
                 </Grid>
                 <Grid item xs={4}>
                   Start : <DateTimePicker
+                    disabled={this.state.realtime}
                     key={this.state.timeRange.start.getTime()}
                     value={this.state.timeRange.start}
                     disableFuture
@@ -138,6 +191,7 @@ class App extends Component {
                 </Grid>
                 <Grid item xs={4}>
                   End : <DateTimePicker
+                    disabled={this.state.realtime}
                     key={this.state.timeRange.end.getTime()}
                     value={this.state.timeRange.end}
                     disableFuture
@@ -152,7 +206,20 @@ class App extends Component {
                     InputProps={{classes: { input: this.props.classes.toolbarInput, underline: this.props.classes.toolbarInputUnderline }}}
                   />
                 </Grid>
-                <Grid item xs={4} />
+                <Grid item xs={4} >
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={this.state.realtime}
+                        onChange={this.handleCheckRealtime.bind(this)}
+                        color="primary"
+                        classes={{ default: this.props.classes.toolbarInput }}
+                      />
+                    }
+                    label="last 24h, sliding realtime"
+                    classes={{ label: this.props.classes.toolbarInput }}
+                  />
+                </Grid>
               </Grid>
             </Toolbar>
           </AppBar>
@@ -166,7 +233,7 @@ class App extends Component {
             <List
               component='nav'
               subheader={<ListSubheader component='div'>Domains / hosts</ListSubheader>}>
-              {this.props.data.domains && this.props.data.domains.map((domain, index) => {
+              {this.props.data.domains && this.props.data.domains.slice().sort((a, b) => a.name.localeCompare(b.name)).map((domain, index) => {
                 return <DomainListItem
                   key={index}
                   domain={domain}
