@@ -5,26 +5,27 @@ import React, { Component } from 'react'
 import gql from 'graphql-tag'
 import { graphql } from 'react-apollo'
 
-import Reboot from 'material-ui/Reboot'
+import CssBaseline from '@material-ui/core/CssBaseline'
 import 'typeface-roboto'
-import Typography from 'material-ui/Typography'
+import Typography from '@material-ui/core/Typography'
 
-import { CircularProgress } from 'material-ui/Progress'
-import Drawer from 'material-ui/Drawer'
-import ListSubheader from 'material-ui/List/ListSubheader'
-import List from 'material-ui/List'
-import AppBar from 'material-ui/AppBar'
-import Toolbar from 'material-ui/Toolbar'
-import Grid from 'material-ui/Grid'
-import Divider from 'material-ui/Divider'
-import FormControlLabel from 'material-ui/Form/FormControlLabel';
-import Checkbox from 'material-ui/Checkbox';
+import CircularProgress from '@material-ui/core/CircularProgress'
+import Drawer from '@material-ui/core/Drawer'
+import ListSubheader from '@material-ui/core/ListSubheader'
+import List from '@material-ui/core/List'
+import AppBar from '@material-ui/core/AppBar'
+import Toolbar from '@material-ui/core/Toolbar'
+import Grid from '@material-ui/core/Grid'
+import Divider from '@material-ui/core/Divider'
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Checkbox from '@material-ui/core/Checkbox';
 
+import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 import { MuiPickersUtilsProvider, DateTimePicker } from 'material-ui-pickers'
-import KeyboardArrowLeft from 'material-ui-icons/KeyboardArrowLeft'
-import KeyboardArrowRight from 'material-ui-icons/KeyboardArrowRight'
-import AccessTime from 'material-ui-icons/AccessTime'
-import DateRange from 'material-ui-icons/DateRange'
+import KeyboardArrowLeft from '@material-ui/icons/KeyboardArrowLeft'
+import KeyboardArrowRight from '@material-ui/icons/KeyboardArrowRight'
+import AccessTime from '@material-ui/icons/AccessTime'
+import DateRange from '@material-ui/icons/DateRange'
 import DateFnsUtils from 'material-ui-pickers/utils/date-fns-utils'
 import { subDays, addDays } from 'date-fns'
 
@@ -34,9 +35,15 @@ import Host from './model/Host'
 import DomainListItem from './ui/DomainListItem'
 import Center from './ui/Center'
 
-import { withStyles } from 'material-ui/styles'
+import { withStyles } from '@material-ui/core/styles'
 import classNames from 'classnames'
 import { withRouter } from 'react-router-dom'
+
+const darkTheme = createMuiTheme({
+  palette: {
+    type: 'dark',
+  },
+});
 
 class App extends Component {
   constructor (props) {
@@ -160,68 +167,68 @@ class App extends Component {
     return (
       <MuiPickersUtilsProvider utils={DateFnsUtils}>
         <div className={classes.root}>
-          <Reboot />
+          <CssBaseline />
           <AppBar
             position='absolute'
             className={classNames(classes.appBar)}
           >
-            <Toolbar>
-              <Grid container spacing={8}>
-                <Grid item xs={12}>
-                  <Typography variant='title' color='inherit' noWrap>
-                    { this.props.data.loading ? 'Munin-front is attempting to query graphql server...' : `Munin on ${this.props.data.hostname}` }
-                  </Typography>
+            <MuiThemeProvider theme={darkTheme}>
+              <Toolbar>
+                <Grid container spacing={8}>
+                  <Grid item xs={12}>
+                    <Typography variant='h6' color='inherit' noWrap>
+                      { this.props.data.loading ? 'Munin-front is attempting to query graphql server...' : `Munin on ${this.props.data.hostname}` }
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={4}>
+                    <DateTimePicker
+                      helperText="Start date / time"
+                      disabled={this.state.realtime}
+                      key={this.state.timeRange.start.getTime()}
+                      value={this.state.timeRange.start}
+                      disableFuture
+                      autoOk
+                      labelFunc={value => value ? value.toLocaleString() : ''}
+                      ampm={false}
+                      onChange={this.handleDateChange.bind(this, 'start')}
+                      leftArrowIcon={<KeyboardArrowLeft />}
+                      rightArrowIcon={<KeyboardArrowRight />}
+                      dateRangeIcon={<DateRange />}
+                      timeIcon={<AccessTime />}
+                    />
+                  </Grid>
+                  <Grid item xs={4}>
+                    <DateTimePicker
+                      helperText="End date / time"
+                      disabled={this.state.realtime}
+                      key={this.state.timeRange.end.getTime()}
+                      value={this.state.timeRange.end}
+                      disableFuture
+                      autoOk
+                      labelFunc={value => value ? value.toLocaleString() : ''}
+                      ampm={false}
+                      onChange={this.handleDateChange.bind(this, 'end')}
+                      leftArrowIcon={<KeyboardArrowLeft />}
+                      rightArrowIcon={<KeyboardArrowRight />}
+                      dateRangeIcon={<DateRange />}
+                      timeIcon={<AccessTime />}
+
+                    />
+                  </Grid>
+                  <Grid item xs={4} >
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={this.state.realtime}
+                          onChange={this.handleCheckRealtime.bind(this)}
+                        />
+                      }
+                      label="last 24h, sliding realtime"
+                    />
+                  </Grid>
                 </Grid>
-                <Grid item xs={4}>
-                  Start : <DateTimePicker
-                    disabled={this.state.realtime}
-                    key={this.state.timeRange.start.getTime()}
-                    value={this.state.timeRange.start}
-                    disableFuture
-                    autoOk
-                    labelFunc={value => value ? value.toLocaleString() : ''}
-                    ampm={false}
-                    onChange={this.handleDateChange.bind(this, 'start')}
-                    leftArrowIcon={<KeyboardArrowLeft />}
-                    rightArrowIcon={<KeyboardArrowRight />}
-                    dateRangeIcon={<DateRange />}
-                    timeIcon={<AccessTime />}
-                    InputProps={{classes: { input: this.props.classes.toolbarInput, underline: this.props.classes.toolbarInputUnderline }}}
-                  />
-                </Grid>
-                <Grid item xs={4}>
-                  End : <DateTimePicker
-                    disabled={this.state.realtime}
-                    key={this.state.timeRange.end.getTime()}
-                    value={this.state.timeRange.end}
-                    disableFuture
-                    autoOk
-                    labelFunc={value => value ? value.toLocaleString() : ''}
-                    ampm={false}
-                    onChange={this.handleDateChange.bind(this, 'end')}
-                    leftArrowIcon={<KeyboardArrowLeft />}
-                    rightArrowIcon={<KeyboardArrowRight />}
-                    dateRangeIcon={<DateRange />}
-                    timeIcon={<AccessTime />}
-                    InputProps={{classes: { input: this.props.classes.toolbarInput, underline: this.props.classes.toolbarInputUnderline }}}
-                  />
-                </Grid>
-                <Grid item xs={4} >
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={this.state.realtime}
-                        onChange={this.handleCheckRealtime.bind(this)}
-                        color="primary"
-                        classes={{ default: this.props.classes.toolbarInput }}
-                      />
-                    }
-                    label="last 24h, sliding realtime"
-                    classes={{ label: this.props.classes.toolbarInput }}
-                  />
-                </Grid>
-              </Grid>
-            </Toolbar>
+              </Toolbar>
+            </MuiThemeProvider>
           </AppBar>
           <Drawer
             variant='permanent'
@@ -274,7 +281,7 @@ const ITEMS_QUERY = gql`
 `
 
 const drawerWidth = 240
-const appBarHeight = 96
+const appBarHeight = 110
 export default graphql(ITEMS_QUERY)(withStyles(theme => ({
   root: {
     display: 'flex',
@@ -298,9 +305,6 @@ export default graphql(ITEMS_QUERY)(withStyles(theme => ({
     backgroundColor: theme.palette.background.default
   },
   toolbar: theme.mixins.toolbar,
-  toolbarInput: {
-    color: theme.palette.common.white
-  },
   fixedHeightToolbar: {
     height: appBarHeight,
     padding: theme.spacing.unit,
@@ -309,13 +313,5 @@ export default graphql(ITEMS_QUERY)(withStyles(theme => ({
       height: appBarHeight - 2 * theme.spacing.unit
     }
   },
-  toolbarInputUnderline: {
 
-    '&::before, &:not(.disabled):hover::before': {
-      'background-color': theme.palette.common.white,
-      'color': theme.palette.common.white
-    }
-
-  }
-
-}))(withRouter(App)))
+}), { withTheme: true })(withRouter(App)))

@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ComposedChart, Area, Line } from 'recharts'
+import { ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ComposedChart, Area, Line, ReferenceLine } from 'recharts'
 import randomcolor from 'randomcolor'
 import Color from 'color'
 
@@ -77,7 +77,8 @@ class MuninLineChart extends Component {
   }
 
   getValue (target, timedValue) {
-    return (this.hasNegative(target) ? -1 : 1) * Object.values(timedValue.values)[0]
+    let value = Object.values(timedValue.values)[0]
+    return value === null ? null : (this.hasNegative(target) ? -1 : 1) * Object.values(timedValue.values)[0]
   }
 
   selectLine (event) {
@@ -100,20 +101,23 @@ class MuninLineChart extends Component {
         if (target.infos.negative) {
           dataKey = target.infos.negative.value
         }
-
+        let value = this.getValue(target, timedValue)
         if (data[timedValue.time] !== undefined) {
           if (data[timedValue.time][dataKey] === undefined) {
-            data[timedValue.time][dataKey] = this.getValue(target, timedValue)
+            if (value !== null) {
+              data[timedValue.time][dataKey] = value
+            }
           } else {
             let v = this.getValue(target, timedValue)
             data[timedValue.time][dataKey] = data[timedValue.time][dataKey] < v
-              ? [ data[timedValue.time][dataKey], this.getValue(target, timedValue) ]
-              : [ this.getValue(target, timedValue), data[timedValue.time][dataKey] ]
+              ? [ data[timedValue.time][dataKey], value ]
+              : [ value, data[timedValue.time][dataKey] ]
           }
         } else {
+
           data[timedValue.time] = {
             time: (new Date(timedValue.time)).getTime() / 1000,
-            [dataKey]: this.getValue(target, timedValue)
+            [dataKey]: value
           }
         }
       }
@@ -137,7 +141,8 @@ class MuninLineChart extends Component {
       <ResponsiveContainer width='100%' height={500} className={this.props.className} >
         <ComposedChart
           data={Object.values(data)}
-          margin={{top: 20, right: 30, left: 50, bottom: 100}}>
+          margin={{top: 20, right: 30, left: 50, bottom: 100}}
+          >
 
           <CartesianGrid stroke='#ccc' />
           <XAxis
@@ -163,6 +168,18 @@ class MuninLineChart extends Component {
               tickFormatter={number => new Intl.NumberFormat({ maximumSignificantDigits: 3 }).format(number)}
               angle={0} />}
           />
+          {Object.keys(this.state.stacks).map((stack, index1) =>
+            this.state.stacks[stack].filter(target => target.infos.negative === undefined && target.infos.critical !== undefined).map((target, index2) =>  <ReferenceLine y={target.infos.critical.value.split(':')[1]} stroke="#faa" strokeDasharray="6 6" />
+          ))}
+          {Object.keys(this.state.stacks).map((stack, index1) =>
+            this.state.stacks[stack].filter(target => target.infos.negative === undefined && target.infos.critical !== undefined).map((target, index2) => <ReferenceLine y={target.infos.critical.value.split(':')[0]} stroke="lightblue" strokeDasharray="6 6" />
+          ))}
+          {Object.keys(this.state.stacks).map((stack, index1) =>
+            this.state.stacks[stack].filter(target => target.infos.negative === undefined && target.infos.warning !== undefined).map((target, index2) =>  <ReferenceLine y={target.infos.warning.value.split(':')[1]} stroke="#faa" strokeDasharray="3 3" />
+          ))}
+          {Object.keys(this.state.stacks).map((stack, index1) =>
+            this.state.stacks[stack].filter(target => target.infos.negative === undefined && target.infos.warning !== undefined).map((target, index2) => <ReferenceLine y={target.infos.warning.value.split(':')[0]} stroke="lightblue" strokeDasharray="3 3" />
+          ))}
           <Tooltip
             wrapperStyle={{ fontSize: 10 }}
             formatter={this.formatLabel.bind(this)}
@@ -176,6 +193,7 @@ class MuninLineChart extends Component {
               return <SerieComponent
                 type='linear'
                 key={i++}
+                connectNulls={false}
                 dataKey={target.name}
                 stroke={this.getColor(target)}
                 stackId={this.hasNegative(target) ? null : stack}

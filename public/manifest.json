@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Munin",
+  "name": "Munin monitoring frontend",
   "icons": [
     {
       "src": "favicon.ico",

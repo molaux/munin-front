@@ -2,14 +2,14 @@ import React, { Component } from 'react'
 import gql from 'graphql-tag'
 import { graphql } from 'react-apollo'
 
-import Typography from 'material-ui/Typography'
-import { CircularProgress } from 'material-ui/Progress'
-import Paper from 'material-ui/Paper'
-import { withStyles } from 'material-ui/styles'
+import Typography from '@material-ui/core/Typography'
+import CircularProgress from '@material-ui/core/CircularProgress'
+import Paper from '@material-ui/core/Paper'
+import { withStyles } from '@material-ui/core/styles'
 import Center from '../ui/Center'
 import MuninLineChart from '../ui/MuninLineChart'
 import InfoDialog from '../ui/InfoDialog'
-import Toolbar from 'material-ui/Toolbar'
+import Toolbar from '@material-ui/core/Toolbar'
 
 class Category extends Component {
   render () {
@@ -17,6 +17,7 @@ class Category extends Component {
     if (this.props.data.loading) {
       return <div className={classes.root}><Center><CircularProgress /></Center></div>
     } else {
+      console.log('DATA', this.props.data)
       return this.props.data.domain.host.probesByCategory.slice().sort((a, b) => a.infos.graph_title.value.localeCompare(b.infos.graph_title.value)).map((probe, index) =>
         <Paper key={index} elevation={4} className={classes.paper} >
           <Typography variant='headline' component='h3'>{probe.infos.graph_title.value}</Typography>
@@ -49,24 +50,24 @@ class Category extends Component {
 const STATS_QUERY = gql`
     query HostStats($domainName: String!, $hostName: String!, $from: String!, $to: String!,  $category: String!){
       domain(name: $domainName) {
+        name
+        host(name: $hostName) {
           name
-          host(name: $hostName) {
+          probesByCategory(category: $category) {
             name
-            probesByCategory(category: $category) {
+            infos
+            targets {
               name
               infos
-              targets {
-                name
-                infos
-                serie(from: $from, to: $to) {
-                  values {
-                    time,
-                    values
-                  }
+              serie(from: $from, to: $to) {
+                values {
+                  time,
+                  values
                 }
               }
             }
           }
+        }
       }
     }
 `

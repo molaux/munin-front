@@ -44,7 +44,7 @@ const typeDefs = `
 `
 // Object.assign(schema._typeMap.JSON, GraphQLJSON);
 
-const munin = new MuninDB('/path/to/munin/rrd/db')
+const munin = new MuninDB('/var/lib/munin')
 
 const resolvers = {
 
@@ -120,6 +120,7 @@ const resolvers = {
 
 const options = { port: 4000 }
 const server = new GraphQLServer({ typeDefs, resolvers })
+setInterval(() => { console.log('reloading...'); munin.load()}, 5 * 60 * 1000)
 munin.load().then(() => server.start(options, () => {
   console.log('Server is running on localhost:' + options.port)
 }))
