@@ -117,6 +117,7 @@ class App extends Component {
   }
 
   componentWillReceiveProps (props) {
+    document.title = props.data.loading ? 'Munin, fetching...' : `Munin on ${props.data.hostname}`
     if (!props.data.loading) {
       let newState = {domains: {}}
       for (let domain of props.data.domains) {
