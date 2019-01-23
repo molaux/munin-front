@@ -6,35 +6,76 @@ import Color from 'color'
 class MuninLineChart extends Component {
   constructor (props) {
     super(props)
-    this.state = { colors: [], stacks: {} }
+    this.state = { colors: [], stacks: {}, data: {} }
     this.state = {
       colors: this.generateMissingColors(props),
-      stacks: this.sortTargets(props)
+      stacks: this.sortTargets(props),
+      probe: { ... props.probe, data: this.handleData(props.probe) }
     }
   }
 
   getColor (target) {
     if (target.infos.negative) {
       // Search for refered one
-      let correspondances = this.props.probe.targets.filter(t => t.name === target.infos.negative.value)
+      let correspondances = this.state.probe.targets.filter(t => t.name === target.infos.negative.value)
       if (correspondances.length === 1) {
         target = correspondances[0]
       }
     }
-    return this.state.colors[this.props.probe.targets.indexOf(target)]
+    return this.state.colors[this.state.probe.targets.indexOf(target)]
   }
 
   hasNegative (target) {
     return this.props.probe.targets.filter(t => t.infos.negative && target.name === t.infos.negative.value).length > 0
   }
 
+  handleData(probe) {
+
+    let data = {}
+    for (let target of probe.targets) {
+      for (let timedValue of target.serie.values) {
+        let dataKey = target.name
+
+        if (target.infos.negative) {
+          dataKey = target.infos.negative.value
+        }
+        let value = this.getValue(target, timedValue)
+        if (data[timedValue.time] !== undefined) {
+          if (data[timedValue.time][dataKey] === undefined) {
+            if (value !== null) {
+              data[timedValue.time][dataKey] = value
+            }
+          } else {
+            let v = this.getValue(target, timedValue)
+            data[timedValue.time][dataKey] = data[timedValue.time][dataKey] < v
+              ? [ data[timedValue.time][dataKey], value ]
+              : [ value, data[timedValue.time][dataKey] ]
+          }
+        } else {
+
+          data[timedValue.time] = {
+            time: (new Date(timedValue.time)).getTime() / 1000,
+            [dataKey]: value
+          }
+        }
+      }
+    }
+
+    return data
+  }
+
   componentWillReceiveProps (props) {
-    if (this.props.probe.targets.length !== props.probe.targets.length) {
+    if (this.state.probe.targets.length !== props.probe.targets.length) {
       this.setState({
         colors: this.generateMissingColors(props),
         stacks: this.sortTargets(props)
       })
     }
+
+
+    this.setState({
+      probe: { ...this.state.probe, data: this.handleData(props.probe)}
+    })
   }
 
   sortTargets (props) {
@@ -72,8 +113,11 @@ class MuninLineChart extends Component {
   }
 
   generateMissingColors (props) {
-    let colors = this.state.colors
-    return colors.concat(randomcolor({ luminosity: 'dark', count: props.probe.targets.length - colors.length }))
+    return randomcolor({
+      seed: props.probe.infos.graph_title.value,
+      luminosity: 'dark',
+      count: props.probe.targets.length
+    })
   }
 
   getValue (target, timedValue) {
@@ -93,35 +137,7 @@ class MuninLineChart extends Component {
   }
 
   render () {
-    let data = {}
-    for (let target of this.props.probe.targets) {
-      for (let timedValue of target.serie.values) {
-        let dataKey = target.name
 
-        if (target.infos.negative) {
-          dataKey = target.infos.negative.value
-        }
-        let value = this.getValue(target, timedValue)
-        if (data[timedValue.time] !== undefined) {
-          if (data[timedValue.time][dataKey] === undefined) {
-            if (value !== null) {
-              data[timedValue.time][dataKey] = value
-            }
-          } else {
-            let v = this.getValue(target, timedValue)
-            data[timedValue.time][dataKey] = data[timedValue.time][dataKey] < v
-              ? [ data[timedValue.time][dataKey], value ]
-              : [ value, data[timedValue.time][dataKey] ]
-          }
-        } else {
-
-          data[timedValue.time] = {
-            time: (new Date(timedValue.time)).getTime() / 1000,
-            [dataKey]: value
-          }
-        }
-      }
-    }
 
     const NotAxisTickButLabel = props => {
       return (<g transform={'translate( ' + (props.x + props.dx) + ',' + (props.y + props.dy) + ' )'} >
@@ -140,7 +156,7 @@ class MuninLineChart extends Component {
     return (
       <ResponsiveContainer width='100%' height={500} className={this.props.className} >
         <ComposedChart
-          data={Object.values(data)}
+          data={Object.values(this.state.probe.data)}
           margin={{top: 20, right: 30, left: 50, bottom: 100}}
           >
 
@@ -156,7 +172,7 @@ class MuninLineChart extends Component {
           />
           <YAxis
             label={{
-              value: this.props.probe.infos.graph_vlabel ? this.props.probe.infos.graph_vlabel.value : '',
+              value: this.state.probe.infos.graph_vlabel ? this.state.probe.infos.graph_vlabel.value : '',
               angle: -90,
               fontSize: 10,
               position: 'inside',

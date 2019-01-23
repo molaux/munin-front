@@ -12,13 +12,38 @@ import InfoDialog from '../ui/InfoDialog'
 import Toolbar from '@material-ui/core/Toolbar'
 
 class Category extends Component {
+  constructor (props) {
+    super(props)
+
+    this.state = {
+      probes: props.data.loading ? [] : this.sortProbes(props.data),
+      loading: props.data.loading,
+      category: props.category
+    }
+
+
+  }
+
+  sortProbes (data) {
+    return data.domain.host.probesByCategory.slice().sort((a, b) =>   a.infos.graph_title.value.localeCompare(b.infos.graph_title.value))
+  }
+
+  componentWillReceiveProps (props) {
+    if (! props.data.loading || this.state.category !== props.category) {
+      this.setState({
+        probes:   props.data.loading ? [] : this.sortProbes(props.data),
+        loading: props.data.loading,
+        category: props.category
+      })
+    }
+  }
+
   render () {
     const { classes } = this.props
-    if (this.props.data.loading) {
+    if (this.state.loading) {
       return <div className={classes.root}><Center><CircularProgress /></Center></div>
     } else {
-      console.log('DATA', this.props.data)
-      return this.props.data.domain.host.probesByCategory.slice().sort((a, b) => a.infos.graph_title.value.localeCompare(b.infos.graph_title.value)).map((probe, index) =>
+      return this.state.probes.map((probe, index) =>
         <Paper key={index} elevation={4} className={classes.paper} >
           <Typography variant='headline' component='h3'>{probe.infos.graph_title.value}</Typography>
           { probe.infos.graph_info ? <Typography component='p'>{probe.infos.graph_info.value}</Typography> : '' }
