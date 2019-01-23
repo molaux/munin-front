@@ -26,7 +26,7 @@ import KeyboardArrowLeft from '@material-ui/icons/KeyboardArrowLeft'
 import KeyboardArrowRight from '@material-ui/icons/KeyboardArrowRight'
 import AccessTime from '@material-ui/icons/AccessTime'
 import DateRange from '@material-ui/icons/DateRange'
-import DateFnsUtils from 'material-ui-pickers/utils/date-fns-utils'
+import DateFnsUtils from '@date-io/date-fns'
 import { subDays, addDays } from 'date-fns'
 
 import './App.css'
