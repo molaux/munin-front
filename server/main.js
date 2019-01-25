@@ -2,6 +2,7 @@ const { GraphQLServer } = require('graphql-yoga')
 
 const MuninDB = require('munin-db')
 const os = require('os')
+const { subDays } = require('date-fns')
 
 const typeDefs = `
   type Query {
@@ -30,14 +31,7 @@ const typeDefs = `
   type Target {
       name: String!
       infos: JSON
-      serie(from: String!, to: String!): Serie
-  }
-  type Serie {
-      values: [TimedValue]!
-  }
-  type TimedValue {
-      time: DateTime
-      values: JSON
+      serie(from: String!, to: String!): [JSON]
   }
   scalar JSON
   scalar DateTime
@@ -108,13 +102,12 @@ const resolvers = {
   },
   Target: {
     infos: (obj) => munin.describe(obj.domain, obj.host, obj.probe, obj.name),
-    serie: (obj, args) => munin.query(obj.domain, obj.host, obj.probe, obj.name, new Date(args.from), new Date(args.to))
-      .then(data => ({
-        values: data.map(timed => ({
+    serie: (obj, args) => munin.query(obj.domain, obj.host, obj.probe, obj.name, new Date(args.from), new Date(args.to), null, new Date(args.from) < subDays(new Date(), 2) ? ['MIN', 'MAX', 'AVERAGE'] : ['AVERAGE'])
+      .then(data => data.map(timed => ({
+          ...timed,
           time: new Date(timed.time * 1000),
-          values: timed.values
         }))
-      }))
+      )
   }
 }
 

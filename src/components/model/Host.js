@@ -27,7 +27,6 @@ class Host extends Component {
   }
 
   componentWillReceiveProps (props) {
-    console.log('Host will receive props')
     if (props.host !== this.props.host || props.domain !== this.props.domain) {
       this.setState({ selectedCategory: null })
     }
@@ -58,8 +57,6 @@ class Host extends Component {
   }
 
   render () {
-    console.log('Host will renders')
-
     const { classes, host, domain } = this.props
     return (this.props.data.loading
       ? (<div className={classes.root}>

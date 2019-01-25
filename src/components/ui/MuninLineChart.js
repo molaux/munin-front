@@ -2,6 +2,13 @@ import React, { Component } from 'react'
 import { ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ComposedChart, Area, Line, ReferenceLine } from 'recharts'
 import randomcolor from 'randomcolor'
 import Color from 'color'
+import { withStyles } from '@material-ui/core/styles'
+
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
+import TableCell from '@material-ui/core/TableCell';
+import TableHead from '@material-ui/core/TableHead';
+import TableRow from '@material-ui/core/TableRow';
 
 class MuninLineChart extends Component {
   constructor (props) {
@@ -9,9 +16,41 @@ class MuninLineChart extends Component {
     this.state = { colors: [], stacks: {}, data: {} }
     this.state = {
       colors: this.generateMissingColors(props),
-      stacks: this.sortTargets(props),
-      probe: { ... props.probe, data: this.handleData(props.probe) }
+      probe: { ...props.probe,
+        targets: props.probe.targets.map(target => ({ stats: this.getStats(target), ...target  })),
+        data: this.handleData(props.probe) },
     }
+    this.state.stacks = this.sortTargets(this.state.probe)
+  }
+
+  getStats(target) {
+    let data = target.serie.filter(timedValue => timedValue.AVERAGE !== undefined && timedValue.AVERAGE !== null)
+    return data.reduce((stats, timedValue) => {
+      // MIN
+      let key = timedValue.MIN !== undefined ? 'MIN' : 'AVERAGE'
+
+      if (timedValue[key] !== undefined && timedValue[key] !== null && (stats.MIN === null || stats.MIN > timedValue[key])) {
+        stats.MIN = timedValue[key]
+      }
+
+      // MAX
+      key = timedValue.MAX !== undefined ? 'MAX' : 'AVERAGE'
+      if (timedValue[key] !== undefined && timedValue[key] !== null && (stats.MAX === null || stats.MAX < timedValue[key])) {
+        stats.MAX = timedValue[key]
+      }
+
+      // AVERAGE
+      stats.count ++
+      stats.AVERAGE = stats.AVERAGE === null
+        ? timedValue.AVERAGE
+        : stats.AVERAGE * (stats.count - 1) / stats.count + timedValue.AVERAGE / stats.count
+
+      if (timedValue.AVERAGE !== undefined && timedValue.AVERAGE !== null) {
+        stats.current = timedValue.AVERAGE
+      }
+      console.log(target.name, stats)
+      return stats
+    }, { MIN: null, MAX: null, AVERAGE:null, current: null, count: 0 })
   }
 
   getColor (target) {
@@ -22,6 +61,7 @@ class MuninLineChart extends Component {
         target = correspondances[0]
       }
     }
+
     return this.state.colors[this.state.probe.targets.indexOf(target)]
   }
 
@@ -33,29 +73,28 @@ class MuninLineChart extends Component {
 
     let data = {}
     for (let target of probe.targets) {
-      for (let timedValue of target.serie.values) {
-        let dataKey = target.name
+      let dataKey = target.name
+      if (target.infos.negative) {
+        dataKey = target.infos.negative.value
+      }
 
-        if (target.infos.negative) {
-          dataKey = target.infos.negative.value
-        }
-        let value = this.getValue(target, timedValue)
+      for (let timedValue of target.serie) {
+        let values = this.getValues(target, timedValue)
         if (data[timedValue.time] !== undefined) {
           if (data[timedValue.time][dataKey] === undefined) {
-            if (value !== null) {
-              data[timedValue.time][dataKey] = value
+            if (values.AVERAGE !== null) {
+              data[timedValue.time][dataKey] = values.AVERAGE
             }
           } else {
-            let v = this.getValue(target, timedValue)
-            data[timedValue.time][dataKey] = data[timedValue.time][dataKey] < v
-              ? [ data[timedValue.time][dataKey], value ]
-              : [ value, data[timedValue.time][dataKey] ]
+            data[timedValue.time][dataKey] = data[timedValue.time][dataKey] < values.AVERAGE
+              ? [ data[timedValue.time][dataKey], values.AVERAGE ]
+              : [ values.AVERAGE, data[timedValue.time][dataKey] ]
           }
         } else {
 
           data[timedValue.time] = {
             time: (new Date(timedValue.time)).getTime() / 1000,
-            [dataKey]: value
+            [dataKey]: values.AVERAGE
           }
         }
       }
@@ -65,28 +104,33 @@ class MuninLineChart extends Component {
   }
 
   componentWillReceiveProps (props) {
+
+    let probe = { ...props.probe,
+      targets: props.probe.targets.map(target => ({ stats: this.getStats(target), ...target })),
+      data: this.handleData(props.probe) }
+
     if (this.state.probe.targets.length !== props.probe.targets.length) {
       this.setState({
         colors: this.generateMissingColors(props),
-        stacks: this.sortTargets(props)
+        stacks: this.sortTargets(probe)
       })
     }
 
-
     this.setState({
-      probe: { ...this.state.probe, data: this.handleData(props.probe)}
+      probe: probe
     })
+
   }
 
-  sortTargets (props) {
+  sortTargets (probe) {
     let stacks = {}
     let currentStack = null
-    let orderedTargets = props.probe.infos.graph_order
-      ? props.probe.infos.graph_order.value.split(' ')
-      : props.probe.targets.map(target => target.name)
+    let orderedTargets = probe.infos.graph_order
+      ? probe.infos.graph_order.value.split(' ')
+      : probe.targets.map(target => target.name)
     for (let t of orderedTargets) {
       // retrieve target
-      let targets = props.probe.targets.filter(target => target.name === t)
+      let targets = probe.targets.filter(target => target.name === t)
       if (targets.length === 1) {
         let target = targets[0]
         if (target.infos.draw && (target.infos.draw.value === 'AREASTACK' || target.infos.draw.value === 'STACK')) {
@@ -120,9 +164,17 @@ class MuninLineChart extends Component {
     })
   }
 
-  getValue (target, timedValue) {
-    let value = Object.values(timedValue.values)[0]
-    return value === null ? null : (this.hasNegative(target) ? -1 : 1) * Object.values(timedValue.values)[0]
+  getValues (target, timedValue) {
+    return Object.keys(timedValue).reduce(
+      (yielded, key) => {
+        if (key === 'time') {
+          yielded[key] = timedValue[key]
+        } else {
+          yielded[key] = timedValue[key] === null ? null : (this.hasNegative(target) ? -1 : 1) * timedValue[key]
+        }
+        return yielded
+      },
+      {})
   }
 
   selectLine (event) {
@@ -137,8 +189,6 @@ class MuninLineChart extends Component {
   }
 
   render () {
-
-
     const NotAxisTickButLabel = props => {
       return (<g transform={'translate( ' + (props.x + props.dx) + ',' + (props.y + props.dy) + ' )'} >
         <text
@@ -153,76 +203,128 @@ class MuninLineChart extends Component {
     }
 
     let i = 0
-    return (
-      <ResponsiveContainer width='100%' height={500} className={this.props.className} >
-        <ComposedChart
-          data={Object.values(this.state.probe.data)}
-          margin={{top: 20, right: 30, left: 50, bottom: 100}}
-          >
+    return <div>
+        <ResponsiveContainer width="100%" height={400}>
+          <ComposedChart
+            data={Object.values(this.state.probe.data)}
+            margin={{top: 20, right: 20, left: 30, bottom: 70}}
+            style={{position: 'relative'}}
+            className={this.props.classes.graph}
+            >
+            <CartesianGrid stroke='#ccc' />
+            <XAxis
+              dataKey='time'
+              tick={<NotAxisTickButLabel
+                angle={-45}
+                dx={-10}
+                dy={0}
+                tickFormatter={time => (new Date(time * 1000)).toLocaleString()}
+              />}
+            />
+            <YAxis
+              label={{
+                value: this.state.probe.infos.graph_vlabel ? this.state.probe.infos.graph_vlabel.value : '',
+                angle: -90,
+                fontSize: 10,
+                position: 'inside',
+                dx: -50
+              }}
+              tick={<NotAxisTickButLabel
+                dx={-5}
+                dy={-7}
+                tickFormatter={number => new Intl.NumberFormat({ maximumSignificantDigits: 3 }).format(number)}
+                angle={0} />}
+            />
+            {Object.keys(this.state.stacks).map((stack, index1) =>
+              this.state.stacks[stack].filter(target => target.infos.negative === undefined && target.infos.critical !== undefined).map((target, index2) =>  <ReferenceLine y={target.infos.critical.value.split(':')[1]} stroke="#faa" strokeDasharray="6 6" />
+            ))}
+            {Object.keys(this.state.stacks).map((stack, index1) =>
+              this.state.stacks[stack].filter(target => target.infos.negative === undefined && target.infos.critical !== undefined).map((target, index2) => <ReferenceLine y={target.infos.critical.value.split(':')[0]} stroke="lightblue" strokeDasharray="6 6" />
+            ))}
+            {Object.keys(this.state.stacks).map((stack, index1) =>
+              this.state.stacks[stack].filter(target => target.infos.negative === undefined && target.infos.warning !== undefined).map((target, index2) =>  <ReferenceLine y={target.infos.warning.value.split(':')[1]} stroke="#faa" strokeDasharray="3 3" />
+            ))}
+            {Object.keys(this.state.stacks).map((stack, index1) =>
+              this.state.stacks[stack].filter(target => target.infos.negative === undefined && target.infos.warning !== undefined).map((target, index2) => <ReferenceLine y={target.infos.warning.value.split(':')[0]} stroke="lightblue" strokeDasharray="3 3" />
+            ))}
+            <Tooltip
+              wrapperStyle={{ fontSize: 10 }}
+              formatter={this.formatLabel.bind(this)}
+              labelFormatter={time => (new Date(time * 1000)).toLocaleString()} />
 
-          <CartesianGrid stroke='#ccc' />
-          <XAxis
-            dataKey='time'
-            tick={<NotAxisTickButLabel
-              angle={-45}
-              dx={-10}
-              dy={0}
-              tickFormatter={time => (new Date(time * 1000)).toLocaleString()}
-            />}
-          />
-          <YAxis
-            label={{
-              value: this.state.probe.infos.graph_vlabel ? this.state.probe.infos.graph_vlabel.value : '',
-              angle: -90,
-              fontSize: 10,
-              position: 'inside',
-              dx: -50
-            }}
-            tick={<NotAxisTickButLabel
-              dx={-5}
-              dy={-7}
-              tickFormatter={number => new Intl.NumberFormat({ maximumSignificantDigits: 3 }).format(number)}
-              angle={0} />}
-          />
-          {Object.keys(this.state.stacks).map((stack, index1) =>
-            this.state.stacks[stack].filter(target => target.infos.negative === undefined && target.infos.critical !== undefined).map((target, index2) =>  <ReferenceLine y={target.infos.critical.value.split(':')[1]} stroke="#faa" strokeDasharray="6 6" />
-          ))}
-          {Object.keys(this.state.stacks).map((stack, index1) =>
-            this.state.stacks[stack].filter(target => target.infos.negative === undefined && target.infos.critical !== undefined).map((target, index2) => <ReferenceLine y={target.infos.critical.value.split(':')[0]} stroke="lightblue" strokeDasharray="6 6" />
-          ))}
-          {Object.keys(this.state.stacks).map((stack, index1) =>
-            this.state.stacks[stack].filter(target => target.infos.negative === undefined && target.infos.warning !== undefined).map((target, index2) =>  <ReferenceLine y={target.infos.warning.value.split(':')[1]} stroke="#faa" strokeDasharray="3 3" />
-          ))}
-          {Object.keys(this.state.stacks).map((stack, index1) =>
-            this.state.stacks[stack].filter(target => target.infos.negative === undefined && target.infos.warning !== undefined).map((target, index2) => <ReferenceLine y={target.infos.warning.value.split(':')[0]} stroke="lightblue" strokeDasharray="3 3" />
-          ))}
-          <Tooltip
-            wrapperStyle={{ fontSize: 10 }}
-            formatter={this.formatLabel.bind(this)}
-            labelFormatter={time => (new Date(time * 1000)).toLocaleString()} />
-          <Legend wrapperStyle={{ position: 'absolute', bottom: 10, fontSize: 10 }} />
-          {Object.keys(this.state.stacks).map((stack, index1) =>
-            this.state.stacks[stack].filter(target => target.infos.negative === undefined).map((target, index2) => {
-              let SerieComponent = (this.hasNegative(target) || target.infos.negative) || (target.infos.draw && (target.infos.draw.value === 'AREA' || target.infos.draw.value === 'AREASTACK' || target.infos.draw.value === 'STACK'))
-                ? Area
-                : Line
-              return <SerieComponent
-                type='linear'
-                key={i++}
-                connectNulls={false}
-                dataKey={target.name}
-                stroke={this.getColor(target)}
-                stackId={this.hasNegative(target) ? null : stack}
-                fill={Color(this.getColor(target)).alpha(0.7).lighten(0.1).string()}
-                dot={false}
-                name={target.infos.label ? target.infos.label.value : target.name}
-              />
-            })
-          )}
-        </ComposedChart>
-      </ResponsiveContainer>
-    )
+            {Object.keys(this.state.stacks).map((stack, index1) =>
+              this.state.stacks[stack].filter(target => target.infos.negative === undefined).map((target, index2) => {
+                let SerieComponent = (this.hasNegative(target) || target.infos.negative) || (target.infos.draw && (target.infos.draw.value === 'AREA' || target.infos.draw.value === 'AREASTACK' || target.infos.draw.value === 'STACK'))
+                  ? Area
+                  : Line
+                console.log(index2, this.getColor(target), this.state.colors )
+                return <SerieComponent
+                  type='linear'
+                  key={i++}
+                  connectNulls={false}
+                  dataKey={target.name}
+                  stroke={this.getColor(target)}
+                  stackId={this.hasNegative(target) ? null : stack}
+                  fill={Color(this.getColor(target)).alpha(0.7).lighten(0.1).string()}
+                  dot={false}
+                  name={target.infos.label ? target.infos.label.value : target.name}
+                />
+              })
+            )}
+          </ComposedChart>
+        </ResponsiveContainer>
+        <Table className={this.props.classes.legendTable} padding="dense" >
+          <TableHead>
+            <TableRow>
+              <TableCell>Target</TableCell>
+              <TableCell align="right">Currrent value</TableCell>
+              <TableCell align="right">Min</TableCell>
+              <TableCell align="right">Average</TableCell>
+              <TableCell align="right">Max</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>{
+            this.state.probe.targets.filter(target => target.infos.negative === undefined).map((target, index2) => (
+              <TableRow key={index2}>
+                <TableCell component="th" scope="row">
+                  <span className={this.props.classes.legendIcon} style={{backgroundColor: this.getColor(target)}} />
+                  {target.infos.label ? target.infos.label.value : target.name}
+                </TableCell>
+                <TableCell align="right">{Number.parseFloat(target.stats.current).toFixed(2)}</TableCell>
+                <TableCell align="right">{Number.parseFloat(target.stats.MIN).toFixed(2)}</TableCell>
+                <TableCell align="right">{Number.parseFloat(target.stats.AVERAGE).toFixed(2)}</TableCell>
+                <TableCell align="right">{Number.parseFloat(target.stats.MAX).toFixed(2)}</TableCell>
+              </TableRow>
+            ))
+          }
+          </TableBody>
+        </Table>
+      </div>
   }
 }
+const styles = theme => ({
+  graph: {
+    marginTop: theme.spacing.unit * 4,
+    marginBottom: theme.spacing.unit * 4,
+    '& .recharts-surface' : {
+      // height: '500px'
+    },
+    '& .recharts-legend-wrapper' : {
+    }
+  },
+  legendTable: {
+    maxWidth: '100%',
+    position: 'relative'
 
-export default MuninLineChart
+  },
+  legendIcon: {
+    display: 'inline-block',
+    marginRight: '0.5em',
+    marginBottom: '-0.35em',
+    position: 'relative',
+    height: '1.5em',
+    width: '1.5em',
+    borderRadius: '1.5em'
+  }
+})
+export default withStyles(styles)(MuninLineChart)
