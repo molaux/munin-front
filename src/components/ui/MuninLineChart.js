@@ -48,7 +48,7 @@ class MuninLineChart extends Component {
       if (timedValue.AVERAGE !== undefined && timedValue.AVERAGE !== null) {
         stats.current = timedValue.AVERAGE
       }
-      console.log(target.name, stats)
+
       return stats
     }, { MIN: null, MAX: null, AVERAGE:null, current: null, count: 0 })
   }
@@ -104,12 +104,11 @@ class MuninLineChart extends Component {
   }
 
   componentWillReceiveProps (props) {
-
     let probe = { ...props.probe,
       targets: props.probe.targets.map(target => ({ stats: this.getStats(target), ...target })),
       data: this.handleData(props.probe) }
 
-    if (this.state.probe.targets.length !== props.probe.targets.length) {
+    if (this.state.probe.targets.length !== probe.targets.length) {
       this.setState({
         colors: this.generateMissingColors(props),
         stacks: this.sortTargets(probe)
@@ -117,7 +116,8 @@ class MuninLineChart extends Component {
     }
 
     this.setState({
-      probe: probe
+      probe: probe,
+      stacks: this.sortTargets(probe)
     })
 
   }
@@ -257,7 +257,6 @@ class MuninLineChart extends Component {
                 let SerieComponent = (this.hasNegative(target) || target.infos.negative) || (target.infos.draw && (target.infos.draw.value === 'AREA' || target.infos.draw.value === 'AREASTACK' || target.infos.draw.value === 'STACK'))
                   ? Area
                   : Line
-                console.log(index2, this.getColor(target), this.state.colors )
                 return <SerieComponent
                   type='linear'
                   key={i++}
