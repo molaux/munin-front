@@ -32,7 +32,7 @@ class DomainListItem extends Component {
               <ListItem button
                 className={`${this.props.match.params.host === host.name && this.props.match.params.domain === domain.name ? classes.selected : ''} ${classes.nested}`}
                 key={index}
-                // onClick={this.props.handleSelection.bind(null, host)}
+                onClick={this.props.onChoice.bind(null, host)}
                 component={Link}
                 to={{ pathname: `/${domain.name}/${host.name}` }}
               >

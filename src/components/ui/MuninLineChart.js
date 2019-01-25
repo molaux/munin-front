@@ -204,7 +204,7 @@ class MuninLineChart extends Component {
 
     let i = 0
     return <div>
-        <ResponsiveContainer width="100%" height={400}>
+        <ResponsiveContainer width="100%" maxWidth="100%" height={400}>
           <ComposedChart
             data={Object.values(this.state.probe.data)}
             margin={{top: 20, right: 20, left: 30, bottom: 70}}

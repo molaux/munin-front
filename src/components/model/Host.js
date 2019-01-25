@@ -124,7 +124,9 @@ const styles = theme => ({
   root: {
     display: 'flex',
     position: 'relative',
-    flexGrow: 1
+    flexGrow: 1,
+    flexShrink: 1,
+    minWidth: 0,
   },
   drawerPaper: {
     position: 'relative',
@@ -138,7 +140,10 @@ const styles = theme => ({
     flexGrow: 1,
     overflow: 'auto',
     backgroundColor: theme.palette.background.default,
-    padding: theme.spacing.unit * 3
+    padding: theme.spacing.unit * 3,
+    maxWidth: '100%',
+    flexShrink: 1,
+    flexBasis: 0
   },
   toolbar: theme.mixins.toolbar,
   selected: {

@@ -19,6 +19,9 @@ import Grid from '@material-ui/core/Grid'
 import Divider from '@material-ui/core/Divider'
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Checkbox from '@material-ui/core/Checkbox';
+import MenuIcon from '@material-ui/icons/Menu';
+import Hidden from '@material-ui/core/Hidden';
+import IconButton from '@material-ui/core/IconButton';
 
 import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 import { MuiPickersUtilsProvider, DateTimePicker } from 'material-ui-pickers'
@@ -55,7 +58,8 @@ class App extends Component {
       timeRange: {
         start: strtotime('1 days ago'),
         end: new Date()
-      }
+      },
+      mobileOpen: false
     }
 
     if (props.match.params.domain) {
@@ -163,8 +167,35 @@ class App extends Component {
     clearInterval(this.refreshTimerId)
   }
 
+  handleDrawerToggle = () => {
+    this.setState(state => ({ mobileOpen: !state.mobileOpen }));
+  };
+
+
   render () {
-    let { classes } = this.props
+    let { classes, theme } = this.props
+    const drawer = isMobile => (
+      <div>
+        <div className={classes.toolbar + ' ' + classes.fixedHeightToolbar}>
+          <img src={logo} alt='logo' />
+        </div>
+        <Divider />
+        <List
+          component='nav'
+          subheader={<ListSubheader component='div'>Domains / hosts</ListSubheader>}>
+          {this.props.data.domains && this.props.data.domains.slice().sort((a, b) => a.name.localeCompare(b.name)).map((domain, index) => {
+            return <DomainListItem
+              key={index}
+              domain={domain}
+              toggleCollapse={this.toggleDomainCollapse.bind(this, domain.name)}
+              collapse={this.state.domains[domain.name].collapse}
+              onChoice={isMobile ? this.handleDrawerToggle : () => false}
+            />
+          })}
+        </List>
+      </div>
+    );
+
     return (
       <MuiPickersUtilsProvider utils={DateFnsUtils}>
         <div className={classes.root}>
@@ -178,6 +209,14 @@ class App extends Component {
                 <Grid container spacing={8}>
                   <Grid item xs={12}>
                     <Typography variant='h6' color='inherit' noWrap>
+                      <IconButton
+                        color="inherit"
+                        aria-label="Open drawer"
+                        onClick={this.handleDrawerToggle}
+                        className={classes.menuButton}
+                      >
+                        <MenuIcon />
+                      </IconButton>
                       { this.props.data.loading ? 'Munin-front is attempting to query graphql server...' : `Munin on ${this.props.data.hostname}` }
                     </Typography>
                   </Grid>
@@ -231,26 +270,35 @@ class App extends Component {
               </Toolbar>
             </MuiThemeProvider>
           </AppBar>
-          <Drawer
-            variant='permanent'
-            classes={{ paper: this.props.classes.drawerPaper }}>
-            <div className={classes.toolbar + ' ' + classes.fixedHeightToolbar}>
-              <img src={logo} alt='logo' />
-            </div>
-            <Divider />
-            <List
-              component='nav'
-              subheader={<ListSubheader component='div'>Domains / hosts</ListSubheader>}>
-              {this.props.data.domains && this.props.data.domains.slice().sort((a, b) => a.name.localeCompare(b.name)).map((domain, index) => {
-                return <DomainListItem
-                  key={index}
-                  domain={domain}
-                  toggleCollapse={this.toggleDomainCollapse.bind(this, domain.name)}
-                  collapse={this.state.domains[domain.name].collapse}
-                />
-              })}
-            </List>
-          </Drawer>
+
+          <nav className={classes.drawer}>
+            {/* The implementation can be swapped with js to avoid SEO duplication of links. */}
+            <Hidden mdUp implementation="css">
+              <Drawer
+                container={this.props.container}
+                variant="temporary"
+                anchor={theme.direction === 'rtl' ? 'right' : 'left'}
+                open={this.state.mobileOpen}
+                onClose={this.handleDrawerToggle}
+                classes={{
+                  paper: classes.drawerPaper,
+                }}
+              >
+                {drawer(true)}
+              </Drawer>
+            </Hidden>
+            <Hidden smDown implementation="css">
+              <Drawer
+                classes={{
+                  paper: classes.drawerPaper,
+                }}
+                variant="permanent"
+                open
+              >
+                {drawer(false)}
+              </Drawer>
+            </Hidden>
+          </nav>
           <main className={classes.appContent}>
             <div className={classes.toolbar} />
             {this.props.data.loading
@@ -286,24 +334,42 @@ const appBarHeight = 110
 export default graphql(ITEMS_QUERY)(withStyles(theme => ({
   root: {
     display: 'flex',
-    height: '100%'
+    height: '100%',
+    width: '100%',
   },
   appBar: {
-    width: `calc(100% - ${drawerWidth}px)`,
     marginLeft: drawerWidth,
     flexGrow: 1,
     height: appBarHeight,
-    padding: theme.spacing.unit * 2
+    padding: theme.spacing.unit * 2,
+    marginLeft: drawerWidth,
+    [theme.breakpoints.up('md')]: {
+      width: `calc(100% - ${drawerWidth}px)`,
+    },
+  },
+  drawer: {
+    [theme.breakpoints.up('md')]: {
+      width: drawerWidth,
+      flexShrink: 0,
+    },
   },
   drawerPaper: {
-    position: 'relative',
-    width: drawerWidth
+    width: drawerWidth,
   },
   appContent: {
     flexGrow: 1,
+    minWidth: 0,
+    flexShrink: 1,
+    flexBasis:0,
     display: 'flex',
     paddingTop: appBarHeight,
     backgroundColor: theme.palette.background.default
+  },
+  menuButton: {
+    marginRight: 20,
+    [theme.breakpoints.up('md')]: {
+      display: 'none',
+    },
   },
   toolbar: theme.mixins.toolbar,
   fixedHeightToolbar: {
