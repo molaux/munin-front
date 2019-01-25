@@ -189,6 +189,24 @@ class MuninLineChart extends Component {
   }
 
   render () {
+    const getMonitoredValueLevel = (value, target) => {
+        if (target.infos.critical !== undefined) {
+          let [low, high] = target.infos.critical.value.split(':')
+          if (value > parseFloat(high) || value < parseFloat(low)) {
+            return 'critical'
+          }
+        }
+        if (target.infos.warning !== undefined) {
+          let [low, high] = target.infos.warning.value.split(':')
+          if (value > parseFloat(high) || value < parseFloat(low)) {
+            return 'warning'
+          }
+        }
+        return 'normal'
+    }
+    const MonitoredValue = ({value, target}) => <span className={this.props.classes[`monitored-${getMonitoredValueLevel(value, target)}`]}>{value}</span>
+
+
     const NotAxisTickButLabel = props => {
       return (<g transform={'translate( ' + (props.x + props.dx) + ',' + (props.y + props.dy) + ' )'} >
         <text
@@ -289,10 +307,26 @@ class MuninLineChart extends Component {
                   <span className={this.props.classes.legendIcon} style={{backgroundColor: this.getColor(target)}} />
                   {target.infos.label ? target.infos.label.value : target.name}
                 </TableCell>
-                <TableCell align="right">{Number.parseFloat(target.stats.current).toFixed(2)}</TableCell>
-                <TableCell align="right">{Number.parseFloat(target.stats.MIN).toFixed(2)}</TableCell>
-                <TableCell align="right">{Number.parseFloat(target.stats.AVERAGE).toFixed(2)}</TableCell>
-                <TableCell align="right">{Number.parseFloat(target.stats.MAX).toFixed(2)}</TableCell>
+                <TableCell align="right">
+                  <MonitoredValue
+                    target= {target}
+                    value={Number.parseFloat(target.stats.current).toFixed(2)}/>
+                </TableCell>
+                <TableCell align="right">
+                  <MonitoredValue
+                    target= {target}
+                    value={Number.parseFloat(target.stats.MIN).toFixed(2)}/>
+                </TableCell>
+                <TableCell align="right">
+                  <MonitoredValue
+                    target= {target}
+                    value={Number.parseFloat(target.stats.AVERAGE).toFixed(2)}/>
+                </TableCell>
+                <TableCell align="right">
+                  <MonitoredValue
+                    target= {target}
+                    value={Number.parseFloat(target.stats.MAX).toFixed(2)}/>
+                </TableCell>
               </TableRow>
             ))
           }
@@ -324,6 +358,14 @@ const styles = theme => ({
     height: '1.5em',
     width: '1.5em',
     borderRadius: '1.5em'
+  },
+  'monitored-critical': {
+    color: 'red'
+  },
+  'monitored-warning': {
+    color: 'orange'
+  },
+  'monitored-normal': {
   }
 })
 export default withStyles(styles)(MuninLineChart)
