@@ -342,7 +342,6 @@ export default graphql(ITEMS_QUERY)(withStyles(theme => ({
     flexGrow: 1,
     height: appBarHeight,
     padding: theme.spacing.unit * 2,
-    marginLeft: drawerWidth,
     [theme.breakpoints.up('md')]: {
       width: `calc(100% - ${drawerWidth}px)`,
     },
