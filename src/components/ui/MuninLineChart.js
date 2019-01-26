@@ -255,14 +255,26 @@ class MuninLineChart extends Component {
   render () {
     const getMonitoredValueLevel = (value, target) => {
         if (target.infos.critical !== undefined) {
-          let [low, high] = target.infos.critical.value.split(':')
-          if (value > parseFloat(high) || value < parseFloat(low)) {
+          let low = undefined, high = undefined
+          let bounds = target.infos.critical.value.split(':')
+          if (bounds.length > 1) {
+            [low, high] = bounds
+          } else if (bounds.length = 1) {
+            [ high ] = bounds
+          }
+          if (high !== undefined && value > parseFloat(high) || low !== undefined && value < parseFloat(low)) {
             return 'critical'
           }
         }
         if (target.infos.warning !== undefined) {
-          let [low, high] = target.infos.warning.value.split(':')
-          if (value > parseFloat(high) || value < parseFloat(low)) {
+          let low = undefined, high = undefined
+          let bounds = target.infos.warning.value.split(':')
+          if (bounds.length > 1) {
+            [low, high] = bounds
+          } else if (bounds.length = 1) {
+            [ high ] = bounds
+          }
+          if (high !== undefined && value > parseFloat(high) || low !== undefined && value < parseFloat(low)) {
             return 'warning'
           }
         }
