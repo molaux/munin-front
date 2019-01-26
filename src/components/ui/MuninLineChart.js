@@ -76,6 +76,10 @@ class MuninLineChart extends Component {
       }
     }
 
+    if (target.infos.colour) {
+      return `#${target.infos.colour.value}`
+    }
+
     return this.state.colors[this.state.probe.targets.indexOf(target)]
   }
 
