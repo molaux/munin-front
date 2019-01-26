@@ -323,7 +323,7 @@ class MuninLineChart extends Component {
           <TableBody>{
             this.state.probe.targets.filter(target => target.infos.negative === undefined).map((target, index2) => (
               <TableRow key={index2}>
-                <TableCell component="th" scope="row">
+                <TableCell component="th" scope="row" className={ this.props.classes.legendRowHead }>
                   <span onClick={this.toggleTargetVisibility.bind(this, target)} className={this.props.classes.legendIcon+(!target.visible?' '+this.props.classes.legendIconHidden:'')} style={{backgroundColor: this.getColor(target)}} />
                   {target.infos.label ? target.infos.label.value : target.name}
                 </TableCell>
@@ -367,8 +367,11 @@ const styles = theme => ({
   },
   legendTable: {
     maxWidth: '100%',
-    position: 'relative'
-
+    position: 'relative',
+  },
+  legendRowHead: {
+    paddingLeft: '4em',
+    textIndent: '-2em'
   },
   legendIcon: {
     display: 'inline-block',

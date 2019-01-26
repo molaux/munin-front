@@ -8,16 +8,12 @@ import InfoDialog from '../ui/InfoDialog'
 import Toolbar from '@material-ui/core/Toolbar'
 
 class Probe extends Component {
-  constructor (props) {
-    super(props)
-
-  }
 
   render () {
     const { probe, classes } = this.props
 
     return <Paper elevation={4} className={classes.paper}>
-        <Typography variant='headline' component='h3'>{probe.infos.graph_title.value}</Typography>
+        <Typography variant='h5' component='h4'>{probe.infos.graph_title.value}</Typography>
         { probe.infos.graph_info ? <Typography component='p'>{probe.infos.graph_info.value}</Typography> : '' }
         <MuninLineChart probe={probe} />
 
@@ -27,7 +23,7 @@ class Probe extends Component {
               {probe.targets.map((target, index) =>
                 (target.infos.info
                   ? <div key={index} className={classes.tip} >
-                    <Typography variant='subheading' component='h5'>{target.infos.label ? target.infos.label.value : target.name}</Typography>
+                    <Typography variant='h5' component='h5'>{target.infos.label ? target.infos.label.value : target.name}</Typography>
                     <Typography variant='caption' component='p'>{target.infos.info.value}</Typography>
                   </div>
                   : '')
