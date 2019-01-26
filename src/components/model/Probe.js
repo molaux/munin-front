@@ -32,8 +32,12 @@ class Probe extends Component {
             : ''
           }
           <InfoDialog title='Debug' primary='Debug infos'>
+            <Typography variant="h5">{probe.name}</Typography>
             <pre>{JSON.stringify(probe.infos, null, 2) }</pre>
-            { probe.targets.map(({infos, name}, index) => <pre key={name}>{JSON.stringify(infos, null, 2) }</pre>)}
+            { probe.targets.map(({infos, name}, index) => <div key={name}>
+                <Typography variant="h6">{name}</Typography>
+                <pre>{JSON.stringify(infos, null, 2) }</pre>
+              </div>)}
           </InfoDialog>
         </Toolbar>
       </Paper>

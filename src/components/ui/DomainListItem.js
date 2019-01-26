@@ -16,7 +16,6 @@ import { withRouter } from 'react-router'
 class DomainListItem extends Component {
   render () {
     const { domain, classes } = this.props
-
     return (
       <div>
         <ListItem button onClick={this.props.toggleCollapse}>
@@ -24,9 +23,9 @@ class DomainListItem extends Component {
             <Domain />
           </ListItemIcon>
           <ListItemText inset primary={domain.name} />
-          {this.props.collapse ? <ExpandMore /> : <ExpandLess />}
+          {domain.collapse ? <ExpandMore /> : <ExpandLess />}
         </ListItem>
-        <Collapse in={!this.props.collapse} timeout='auto' unmountOnExit>
+        <Collapse in={!domain.collapse} timeout='auto' unmountOnExit>
           <List component='div' disablePadding>
             { domain.hosts && domain.hosts.slice().sort((a, b) => a.name.localeCompare(b.name)).map((host, index) =>
               <ListItem button

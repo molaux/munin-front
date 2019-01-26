@@ -13,7 +13,7 @@ import TableRow from '@material-ui/core/TableRow';
 class MuninLineChart extends Component {
   constructor (props) {
     super(props)
-    this.state = { colors: [], stacks: {}, data: {}, animated: true }
+    this.state = { colors: [], stacks: {}, data: {}, animated: true, probe: { targets: [] } }
     this.state = {
       colors: this.generateMissingColors(props),
       probe: { ...props.probe,
@@ -76,8 +76,41 @@ class MuninLineChart extends Component {
     return this.state.colors[this.state.probe.targets.indexOf(target)]
   }
 
+  hasPositive (target) {
+    return this.getPositive(target) !== null
+  }
+
+  getPositive (target) {
+    if (target._getPositive === undefined) {
+      let tmp
+      target._getPositive = (tmp = this.state.probe.targets.filter(t => t.infos.negative && target.name === t.infos.negative.value)).length > 0
+        ? tmp[0]
+        : null
+    }
+    return target._getPositive
+  }
+
+  getNegative (target) {
+    if (target._getNegative === undefined) {
+      let tmp
+      target._getNegative = this.hasNegative(target)
+        ? ((tmp = this.state.probe.targets.filter(t => t.name === target.infos.negative.value)).length > 0
+          ? tmp[0]
+          : null)
+        : null
+    }
+    return target._getNegative
+  }
+
+  getOpposite (target) {
+    let tmp
+    return (tmp = this.getPositive(target)) !== null
+      ? tmp
+      : this.getNegative(target)
+  }
+
   hasNegative (target) {
-    return this.props.probe.targets.filter(t => t.infos.negative && target.name === t.infos.negative.value).length > 0
+    return target.infos.negative && target.infos.negative.value
   }
 
   handleData(probe) {
@@ -85,8 +118,8 @@ class MuninLineChart extends Component {
     let data = {}
     for (let target of probe.targets) {
       let dataKey = target.name
-      if (target.infos.negative) {
-        dataKey = target.infos.negative.value
+      if (this.hasPositive(target)) {
+        dataKey = this.getPositive(target).name
       }
 
       for (let timedValue of target.serie) {
@@ -189,7 +222,7 @@ class MuninLineChart extends Component {
         if (key === 'time') {
           yielded[key] = timedValue[key]
         } else {
-          yielded[key] = timedValue[key] === null ? null : (this.hasNegative(target) ? -1 : 1) * timedValue[key]
+          yielded[key] = timedValue[key] === null ? null : (this.hasPositive(target) ? -1 : 1) * timedValue[key]
         }
         return yielded
       },
@@ -273,16 +306,16 @@ class MuninLineChart extends Component {
                 angle={0} />}
             />
             {Object.keys(this.state.stacks).map((stack, index1) =>
-              this.state.stacks[stack].filter(target => target.infos.negative === undefined && target.infos.critical !== undefined && target.visible).map((target, index2) =>  <ReferenceLine y={target.infos.critical.value.split(':')[1]} stroke="#faa" strokeDasharray="6 6" />
+              this.state.stacks[stack].filter(target => !this.hasPositive(target) && target.infos.critical !== undefined && target.visible).map((target, index2) =>  <ReferenceLine y={target.infos.critical.value.split(':')[1]} stroke="#faa" strokeDasharray="6 6" />
             ))}
             {Object.keys(this.state.stacks).map((stack, index1) =>
-              this.state.stacks[stack].filter(target => target.infos.negative === undefined && target.infos.critical !== undefined && target.visible).map((target, index2) => <ReferenceLine y={target.infos.critical.value.split(':')[0]} stroke="lightblue" strokeDasharray="6 6" />
+              this.state.stacks[stack].filter(target => !this.hasPositive(target) && target.infos.critical !== undefined && target.visible).map((target, index2) => <ReferenceLine y={target.infos.critical.value.split(':')[0]} stroke="lightblue" strokeDasharray="6 6" />
             ))}
             {Object.keys(this.state.stacks).map((stack, index1) =>
-              this.state.stacks[stack].filter(target => target.infos.negative === undefined && target.infos.warning !== undefined && target.visible).map((target, index2) =>  <ReferenceLine y={target.infos.warning.value.split(':')[1]} stroke="#faa" strokeDasharray="3 3" />
+              this.state.stacks[stack].filter(target => !this.hasPositive(target) && target.infos.warning !== undefined && target.visible).map((target, index2) =>  <ReferenceLine y={target.infos.warning.value.split(':')[1]} stroke="#faa" strokeDasharray="3 3" />
             ))}
             {Object.keys(this.state.stacks).map((stack, index1) =>
-              this.state.stacks[stack].filter(target => target.infos.negative === undefined && target.infos.warning !== undefined && target.visible).map((target, index2) => <ReferenceLine y={target.infos.warning.value.split(':')[0]} stroke="lightblue" strokeDasharray="3 3" />
+              this.state.stacks[stack].filter(target => !this.hasPositive(target) && target.infos.warning !== undefined && target.visible).map((target, index2) => <ReferenceLine y={target.infos.warning.value.split(':')[0]} stroke="lightblue" strokeDasharray="3 3" />
             ))}
             <Tooltip
               wrapperStyle={{ fontSize: 10 }}
@@ -290,8 +323,8 @@ class MuninLineChart extends Component {
               labelFormatter={time => (new Date(time * 1000)).toLocaleString()} />
 
             {Object.keys(this.state.stacks).map((stack, index1) =>
-              this.state.stacks[stack].filter(target => target.infos.negative === undefined && target.visible).map((target, index2) => {
-                let SerieComponent = (this.hasNegative(target) || target.infos.negative) || (target.infos.draw && (target.infos.draw.value === 'AREA' || target.infos.draw.value === 'AREASTACK' || target.infos.draw.value === 'STACK'))
+              this.state.stacks[stack].filter(target => !this.hasPositive(target) && target.visible).map((target, index2) => {
+                let SerieComponent = this.hasNegative(target) || (target.infos.draw && (target.infos.draw.value === 'AREA' || target.infos.draw.value === 'AREASTACK' || target.infos.draw.value === 'STACK'))
                   ? Area
                   : Line
                 return <SerieComponent
@@ -321,7 +354,7 @@ class MuninLineChart extends Component {
             </TableRow>
           </TableHead>
           <TableBody>{
-            this.state.probe.targets.filter(target => target.infos.negative === undefined).map((target, index2) => (
+            this.state.probe.targets.filter(target => !this.hasPositive(target)).map((target, index2) => (
               <TableRow key={index2}>
                 <TableCell component="th" scope="row" className={ this.props.classes.legendRowHead }>
                   <span onClick={this.toggleTargetVisibility.bind(this, target)} className={this.props.classes.legendIcon+(!target.visible?' '+this.props.classes.legendIconHidden:'')} style={{backgroundColor: this.getColor(target)}} />

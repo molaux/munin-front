@@ -66,7 +66,9 @@ class App extends Component {
     }
 
     if (props.match.params.domain) {
-      this.state.domains[props.match.params.domain] = { collapse: false }
+      this.state.domains[props.match.params.domain] = {
+        collapse: false
+      }
     }
 
     if (props.match.params.from && props.match.params.to) {
@@ -79,16 +81,18 @@ class App extends Component {
   }
 
   toggleDomainCollapse (domain) {
-    let state = { domains: {} }
-    for (let d in this.state.domains) {
-      if (d === domain) {
-        state.domains[d] = { collapse: !this.state.domains[d].collapse }
-      } else {
-        state.domains[d] = { collapse: true }
-      }
-    }
-
-    this.setState(state)
+    this.setState(state => ({
+      domains: Object.keys(state.domains)
+        .reduce((o, domainName) => {
+          o[domainName] = {
+            ...state.domains[domainName],
+            collapse: state.domains[domainName].name === domain.name
+              ? !state.domains[domainName].collapse
+              : true
+          }
+          return o
+        }, {} )
+    }) )
   }
 
   handleCheckRealtime (event) {
@@ -128,7 +132,29 @@ class App extends Component {
     if (!props.data.loading) {
       let newState = {domains: {}}
       for (let domain of props.data.domains) {
-        newState.domains[domain.name] = { collapse: this.state.domains[domain.name] !== undefined ? this.state.domains[domain.name].collapse : true }
+        newState.domains[domain.name] = {
+          collapse: this.state.domains[domain.name] !== undefined ? this.state.domains[domain.name].collapse : true ,
+          hosts: {},
+          ...domain
+        }
+
+        for (let host of domain.hosts) {
+          newState.domains[domain.name].hosts[host.name] = { ...host, categories: {} }
+          for (let probe of host.probes) {
+            let category = 'Unknown'
+
+            if (probe.infos.graph_category !== undefined && probe.infos.graph_category.value) {
+              category = probe.infos.graph_category.value
+              category = category.charAt(0).toUpperCase() + category.substr(1)
+            }
+
+            if (Object.keys(newState.domains[domain.name].hosts[host.name].categories).indexOf(category) < 0) {
+              newState.domains[domain.name].hosts[host.name].categories[category] = { name: category, probes: [probe] }
+            } else {
+              newState.domains[domain.name].hosts[host.name].categories[category].probes.push(probe)
+            }
+          }
+        }
       }
 
       this.setState(newState)
@@ -186,12 +212,13 @@ class App extends Component {
         <List
           component='nav'
           subheader={<ListSubheader component='div'>Domains / hosts</ListSubheader>}>
-          {this.props.data.domains && this.props.data.domains.slice().sort((a, b) => a.name.localeCompare(b.name)).map((domain, index) => {
+          {this.state.domains && Object.values(this.state.domains)
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .map((domain, index) => {
             return <DomainListItem
               key={index}
               domain={domain}
-              toggleCollapse={this.toggleDomainCollapse.bind(this, domain.name)}
-              collapse={this.state.domains[domain.name].collapse}
+              toggleCollapse={this.toggleDomainCollapse.bind(this, domain)}
               onChoice={isMobile ? this.handleDrawerToggle : () => false}
             />
           })}
@@ -307,7 +334,9 @@ class App extends Component {
             {this.props.data.loading
               ? <Center><CircularProgress /></Center>
               : (this.props.match.params.host
-                ? <Host domain={this.props.match.params.domain} host={this.props.match.params.host} from={this.state.timeRange.start} to={this.state.timeRange.end} />
+                ? <Host
+                  host={this.state.domains[this.props.match.params.domain].hosts[this.props.match.params.host]}
+                  from={this.state.timeRange.start} to={this.state.timeRange.end} />
                 : <Center>Welcome ! Please select a host from the list beside.</Center>)
             }
           </main>
@@ -323,10 +352,13 @@ const ITEMS_QUERY = gql`
     domains {
       name
       hosts {
+        name
+        domain {
           name
-          domain {
-              name
-          }
+        }
+        probes {
+          infos
+        }
       }
     }
   }

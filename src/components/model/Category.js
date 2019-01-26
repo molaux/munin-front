@@ -73,9 +73,9 @@ const styles = theme => ({
 })
 
 export default graphql(STATS_QUERY, {
-  options: ({ domain, host, to, from, category }) => ({ variables: {
-    hostName: host,
-    domainName: domain,
+  options: ({ host, to, from, category }) => ({ variables: {
+    hostName: host.name,
+    domainName: host.domain.name,
     category: category,
     from: from.toISOString(),
     to: to.toISOString()
