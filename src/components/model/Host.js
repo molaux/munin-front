@@ -7,6 +7,8 @@ import ListItem from '@material-ui/core/ListItem'
 import ListItemIcon from '@material-ui/core/ListItemIcon'
 import ListItemText from '@material-ui/core/ListItemText'
 import ShowChart from '@material-ui/icons/ShowChart'
+import Hidden from '@material-ui/core/Hidden';
+
 import { withStyles } from '@material-ui/core/styles'
 import { Link } from 'react-router-dom'
 import { withRouter } from 'react-router'
@@ -35,28 +37,30 @@ class Host extends Component {
   render () {
     const { classes } = this.props
     return (<div className={classes.root}>
-        <Drawer
-          variant='permanent'
-          classes={{paper: classes.drawerPaper}}>
-          <List
-            component='nav'
-            subheader={<ListSubheader component='div' className={classes.drawerTitle}>Categories</ListSubheader>}>
-            {Object.values(this.props.host.categories).sort((a, b) => a.name.localeCompare(b.name)).map((category, index) =>
-              <ListItem
-                key={index}
-                onClick={this.handleCategorySelection.bind(this, category)}
-                className={`${this.props.match.params.category === category.name ? classes.selected : ''}`}
-                component={Link}
-                to={{ pathname: `/${this.props.host.domain.name}/${this.props.host.name}/${category.name}/${this.props.from.toISOString()}/${this.props.to.toISOString()}` }}
-                button>
-                <ListItemIcon className={classes.icon}>
-                  <ShowChart />
-                </ListItemIcon>
-                <ListItemText inset classes={{primary: classes.primary}} primary={category.name} />
-              </ListItem>
-            )}
-          </List>
-        </Drawer>
+        <Hidden smDown implementation="css" className={classes.hidden}>
+          <Drawer
+            variant='permanent'
+            classes={{paper: classes.drawerPaper}}>
+            <List
+              component='nav'
+              subheader={<ListSubheader component='div' className={classes.drawerTitle}>Categories</ListSubheader>}>
+              {Object.values(this.props.host.categories).sort((a, b) => a.name.localeCompare(b.name)).map((category, index) =>
+                <ListItem
+                  key={index}
+                  onClick={this.handleCategorySelection.bind(this, category)}
+                  className={`${this.props.match.params.category === category.name ? classes.selected : ''}`}
+                  component={Link}
+                  to={{ pathname: `/${this.props.host.domain.name}/${this.props.host.name}/${category.name}/${this.props.from.toISOString()}/${this.props.to.toISOString()}` }}
+                  button>
+                  <ListItemIcon className={classes.icon}>
+                    <ShowChart />
+                  </ListItemIcon>
+                  <ListItemText inset classes={{primary: classes.primary}} primary={category.name} />
+                </ListItem>
+              )}
+            </List>
+          </Drawer>
+        </Hidden>
         {this.props.match.params.category
           ? (<main className={classes.appContent}>
             <Category
@@ -80,10 +84,18 @@ const styles = theme => ({
     flexShrink: 1,
     minWidth: 0,
   },
+  hidden: {
+    [theme.breakpoints.up('md')]: {
+      height: '100%',
+      display: 'flex',
+      flexGrow: 0
+    }
+  },
   drawerPaper: {
     position: 'relative',
     width: drawerWidth,
-    maxHeight: '100%'
+    height: '100%',
+    flexGrow: 1
   },
   drawerTitle: {
     'background-color': theme.palette.common.white

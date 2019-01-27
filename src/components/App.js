@@ -71,6 +71,14 @@ class App extends Component {
       }
     }
 
+    if (props.match.params.host) {
+      this.state.domains[props.match.params.domain].hosts = {
+        [props.match.params.host]: {
+          collapse: false
+        }
+      }
+    }
+
     if (props.match.params.from && props.match.params.to) {
       this.state.timeRange = {
         start: new Date(props.match.params.from),
@@ -86,13 +94,29 @@ class App extends Component {
         .reduce((o, domainName) => {
           o[domainName] = {
             ...state.domains[domainName],
-            collapse: state.domains[domainName].name === domain.name
+            collapse: domainName === domain.name
               ? !state.domains[domainName].collapse
               : true
           }
           return o
         }, {} )
     }) )
+  }
+
+  toggleHostCollapse (domain, host) {
+    this.setState(state => {
+        state.domains[domain.name].hosts = Object.keys(state.domains[domain.name].hosts)
+          .reduce((o, hostName) => {
+            o[hostName] = {
+              ...state.domains[domain.name].hosts[hostName],
+              collapse: hostName === host.name
+                ? !state.domains[domain.name].hosts[hostName].collapse
+                : true
+            }
+            return o
+          }, {} )
+        return state
+    } )
   }
 
   handleCheckRealtime (event) {
@@ -133,13 +157,18 @@ class App extends Component {
       let newState = {domains: {}}
       for (let domain of props.data.domains) {
         newState.domains[domain.name] = {
+          ...domain,
           collapse: this.state.domains[domain.name] !== undefined ? this.state.domains[domain.name].collapse : true ,
           hosts: {},
-          ...domain
         }
 
         for (let host of domain.hosts) {
-          newState.domains[domain.name].hosts[host.name] = { ...host, categories: {} }
+          newState.domains[domain.name].hosts[host.name] = {
+            collapse: this.state.domains[domain.name] !== undefined && this.state.domains[domain.name].hosts[host.name] !== undefined ? this.state.domains[domain.name].hosts[host.name].collapse : true ,
+            categories: {},
+            ...host
+          }
+
           for (let probe of host.probes) {
             let category = 'Unknown'
 
@@ -218,8 +247,10 @@ class App extends Component {
             return <DomainListItem
               key={index}
               domain={domain}
-              toggleCollapse={this.toggleDomainCollapse.bind(this, domain)}
+              toggleDomainCollapse={this.toggleDomainCollapse.bind(this, domain)}
+              toggleHostCollapse={this.toggleHostCollapse.bind(this, domain)}
               onChoice={isMobile ? this.handleDrawerToggle : () => false}
+              isMobile={isMobile}
             />
           })}
         </List>
