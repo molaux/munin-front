@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import { ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, ComposedChart, Area, Line, ReferenceLine } from 'recharts'
-import randomcolor from 'randomcolor'
+import randomcolor from '../../lib/randomColor'
 import Color from 'color'
 import { withStyles } from '@material-ui/core/styles'
 
@@ -256,6 +256,38 @@ class MuninLineChart extends Component {
       : new Intl.NumberFormat({ maximumSignificantDigits: 3 }).format(label)
   }
 
+  formatYAxisLabel (number) {
+    if (number === 0) {
+      return 0
+    }
+
+    let sign = number < 0 ? -1 : 1
+
+    let log1000 = Math.floor(Math.log(sign * number) / Math.log(1000))
+    let suffix = ''
+    switch (log1000) {
+      case -2: suffix = 'µ'
+        break
+      case -1: suffix = 'm'
+        break
+      case 1: suffix = 'k'
+        break
+      case 2: suffix = 'M'
+        break
+      case 3: suffix = 'G'
+        break
+      case 4: suffix = 'T'
+        break
+      case 5: suffix = 'P'
+        break
+      default :
+        if (log1000 !== 0) {
+          suffix = `⏨${log1000 * 3}`
+        }
+    }
+    return (new Intl.NumberFormat({ maximumSignificantDigits: 3 }).format(number / Math.pow(1000, log1000)))+suffix
+  }
+
   render () {
     const getMonitoredValueLevel = (value, target) => {
         if (target.infos.critical !== undefined) {
@@ -338,7 +370,7 @@ class MuninLineChart extends Component {
         <ResponsiveContainer width="100%" maxWidth="100%" height={400}>
           <ComposedChart
             data={Object.values(this.state.probe.data)}
-            margin={{top: 20, right: 20, left: 30, bottom: 70}}
+            margin={{top: 0, right: 0, left: 20, bottom: 70}}
             style={{position: 'relative'}}
             className={this.props.classes.graph}
             >
@@ -358,12 +390,12 @@ class MuninLineChart extends Component {
                 angle: -90,
                 fontSize: 10,
                 position: 'inside',
-                dx: -50
+                dx: -20
               }}
               tick={<NotAxisTickButLabel
                 dx={-5}
                 dy={-7}
-                tickFormatter={number => new Intl.NumberFormat({ maximumSignificantDigits: 3 }).format(number)}
+                tickFormatter={number => this.formatYAxisLabel(number)}
                 angle={0} />}
             />
             {Object.keys(this.state.stacks).map((stack, index1) =>
@@ -415,12 +447,12 @@ class MuninLineChart extends Component {
             </TableRow>
           </TableHead>
           <TableBody>
-            {this.state.probe.targets.filter(target => !this.hasPositive(this.state.probe, target)).map((target, index2) => [
+            {Object.values(this.state.stacks).reverse().map(stack => stack.reverse().filter(target => !this.hasPositive(this.state.probe, target)).map((target, index2) => [
               <LegendRow key="positive" probe={ this.state.probe } target={ target }/>,
               this.hasNegative(this.state.probe, target)
                 ? <LegendRow key="negative" probe={ this.state.probe } target={ this.getNegative(this.state.probe, target) }/>
                 : null
-            ])}
+            ]))}
           </TableBody>
         </Table>
       </div>

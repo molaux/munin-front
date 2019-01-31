@@ -1,5 +1,5 @@
 const { GraphQLServer } = require('graphql-yoga')
-
+var compression = require('compression')
 const MuninDB = require('munin-db')
 const os = require('os')
 const { subDays } = require('date-fns')
@@ -113,6 +113,7 @@ const resolvers = {
 
 const options = { port: 4000 }
 const server = new GraphQLServer({ typeDefs, resolvers })
+server.use(compression())
 setInterval(() => { console.log('reloading...'); munin.load()}, 5 * 60 * 1000)
 munin.load().then(() => server.start(options, () => {
   console.log('Server is running on localhost:' + options.port)

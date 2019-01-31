@@ -18,26 +18,29 @@ const client = new ApolloClient({
   cache: new InMemoryCache()
 })
 
+let basePath = process.env.PUBLIC_URL
+//let basePath = ''
+basePath = basePath.length > 0 && basePath[basePath.count-1] === '/' ? basePath.substring(0, -1) : basePath
 // console.log(GRAPHQL_PORT);
 
 ReactDOM.render(
-  <BrowserRouter>
+  <BrowserRouter basename={basePath}>
     <ApolloProvider client={client}>
       <Switch>
-        <Route exact path='/' render={props => <App {...props} />} />
+        <Route exact path="/" render={props => <App {...props} />} />
         <Route
           exact
-          path='/:domain/:host'
+          path="/:domain/:host"
           render={props => <App {...props} />}
         />
         <Route
           exact
-          path='/:domain/:host/:category'
+          path="/:domain/:host/:category"
           render={props => <App {...props} />}
         />
         <Route
           exact
-          path='/:domain/:host/:category/:from/:to'
+          path="/:domain/:host/:category/:from/:to"
           render={props => <App {...props} />}
         />
       </Switch>
