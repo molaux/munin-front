@@ -5,7 +5,7 @@ I developped it initialy in a learning purpose of React / Apollo / Graphql stack
 The project is composed of a React frontend and a graphql backend. It provides interractive SVG graph reprensations of Munin plugins fetched data. It can be used to visualize historical data by picking end and start datetimes or to follow last 24h sliding window.
 
 # Install
-
+On a Munin server :
 ```bash
 git clone https://github.com/molaux/munin-front
 cd munin-front
@@ -13,6 +13,7 @@ yarn install
 yarn build
 ```
 # Start graphql backend
+At the present time, the backend expects Munin files to be located at `/var/lib/munin`
 ```bash
 node server/main.js
 ```
