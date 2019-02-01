@@ -10,12 +10,20 @@ import TableCell from '@material-ui/core/TableCell';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 
+import MenuItem from '@material-ui/core/MenuItem';
+import FormControl from '@material-ui/core/FormControl';
+import Select from '@material-ui/core/Select';
+import Checkbox from '@material-ui/core/Checkbox';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+
 class MuninLineChart extends Component {
   constructor (props) {
     super(props)
     this.state = { colors: [], stacks: {}, data: {}, animated: true, probe: { targets: [] } }
     this.state = {
       colors: this.generateMissingColors(props),
+      dimension: 'AVERAGE',
+      showMinMax: true,
       probe: {
         ...props.probe,
         targets: props.probe.targets.map(target => ({
@@ -29,6 +37,7 @@ class MuninLineChart extends Component {
     }
     this.state.probe.data = this.handleData(this.state.probe)
     this.state.stacks = this.sortTargets(this.state.probe)
+    this.state.isMultiDimensions = this.isMultiDimensions(this.state.probe.data)
   }
 
   toggleTargetVisibility(target) {
@@ -144,25 +153,38 @@ class MuninLineChart extends Component {
         let values = this.getValues(probe, target, timedValue)
         if (data[timedValue.time] !== undefined) {
           if (data[timedValue.time][dataKey] === undefined) {
-            if (values.AVERAGE !== null) {
-              data[timedValue.time][dataKey] = values.AVERAGE
-            }
+            // if (values.AVERAGE !== null) {
+              data[timedValue.time][dataKey] = values
+            // }
           } else {
-            data[timedValue.time][dataKey] = data[timedValue.time][dataKey] < values.AVERAGE
-              ? [ data[timedValue.time][dataKey], values.AVERAGE ]
-              : [ values.AVERAGE, data[timedValue.time][dataKey] ]
+            for (let key of Object.keys(values)) {
+              data[timedValue.time][dataKey][key] = data[timedValue.time][dataKey][key] < values[key]
+                ? [ data[timedValue.time][dataKey][key], values[key] ]
+                : [ values[key], data[timedValue.time][dataKey][key] ]
+            }
+
           }
         } else {
-
           data[timedValue.time] = {
             time: (new Date(timedValue.time)).getTime() / 1000,
-            [dataKey]: values.AVERAGE
+            [dataKey]: values
           }
         }
       }
     }
 
     return data
+  }
+
+  isMultiDimensions(data) {
+    for (let timeKey in data) {
+      for (let dataKey in data[timeKey]) {
+        if (data[timeKey][dataKey].MIN !== undefined || data[timeKey][dataKey].MAX !== undefined) {
+          return true
+        }
+      }
+    }
+    return false
   }
 
   componentWillReceiveProps (props) {
@@ -183,9 +205,11 @@ class MuninLineChart extends Component {
     this.setState(state => ({
       ...state,
       animated: false,
+      isMultiDimensions: this.isMultiDimensions(probe.data),
       probe: probe,
       stacks: this.sortTargets(probe),
-      colors: this.generateMissingColors(props)
+      colors: this.generateMissingColors(props),
+
     }))
 
   }
@@ -263,7 +287,7 @@ class MuninLineChart extends Component {
   }
 
   getValues (probe, target, timedValue) {
-    return Object.keys(timedValue).reduce(
+    let values = Object.keys(timedValue).reduce(
       (yielded, key) => {
         if (key === 'time') {
           yielded[key] = timedValue[key]
@@ -273,6 +297,13 @@ class MuninLineChart extends Component {
         return yielded
       },
       {})
+
+    values.MIN_MAX = [
+      values.MIN !== undefined ? values.MIN : values.AVERAGE,
+      values.MAX !== undefined ? values.MAX : values.AVERAGE
+    ]
+
+    return values
   }
 
   selectLine (event) {
@@ -316,6 +347,14 @@ class MuninLineChart extends Component {
         }
     }
     return (new Intl.NumberFormat({ maximumSignificantDigits: 3 }).format(number / Math.pow(1000, log1000)))+suffix
+  }
+
+  handleDimensionChange (event) {
+    this.setState({ dimension: event.target.value })
+  }
+
+  handleShowMinMax (event) {
+    this.setState({ showMinMax: event.target.checked })
   }
 
   render () {
@@ -397,6 +436,26 @@ class MuninLineChart extends Component {
 
     let i = 0
     return <div>
+        {this.state.isMultiDimensions ?
+        [<FormControl key="select-dimension" className={this.props.classes.formControl}>
+          <Select
+            value={this.state.dimension}
+            onChange={this.handleDimensionChange.bind(this)}
+          >
+            <MenuItem value="MIN">Min</MenuItem>
+            <MenuItem value="AVERAGE">Average</MenuItem>
+            <MenuItem value="MAX">Max</MenuItem>
+          </Select>
+        </FormControl>,
+        <FormControlLabel key="check-minmax"
+          control={
+            <Checkbox
+              checked={this.state.showMinMax}
+              onChange={this.handleShowMinMax.bind(this)}
+            />
+          }
+          label="Show min/max bounds"
+        />] : '' }
         <ResponsiveContainer width="100%" maxWidth="100%" height={400}>
           <ComposedChart
             data={Object.values(this.state.probe.data)}
@@ -450,18 +509,33 @@ class MuninLineChart extends Component {
                 let SerieComponent = this.hasNegative(this.state.probe, target) || (target.infos.draw && (target.infos.draw.value === 'AREA' || target.infos.draw.value === 'AREASTACK' || target.infos.draw.value === 'STACK'))
                   ? Area
                   : Line
-                return <SerieComponent
-                  type='linear'
-                  key={i++}
-                  connectNulls={false}
-                  isAnimationActive={this.state.animated}
-                  dataKey={target.name}
-                  stroke={this.getColor(target)}
-                  stackId={this.hasNegative(this.state.probe, target) ? null : stack}
-                  fill={Color(this.getColor(target)).alpha(0.7).lighten(0.1).string()}
-                  dot={false}
-                  name={target.infos.label ? target.infos.label.value : target.name}
-                />
+                return [
+                  <SerieComponent
+                    type='linear'
+                    key={i++}
+                    connectNulls={false}
+                    isAnimationActive={this.state.animated}
+                    dataKey={`${target.name}.${this.state.isMultiDimensions ? this.state.dimension : 'AVERAGE'}`}
+                    stroke={this.getColor(target)}
+                    stackId={this.hasNegative(this.state.probe, target) ? null : stack}
+                    fill={Color(this.getColor(target)).alpha(0.7).lighten(0.1).string()}
+                    dot={false}
+                    name={target.infos.label ? target.infos.label.value : target.name}
+                  />,
+                  this.state.isMultiDimensions && SerieComponent === Line && this.state.showMinMax
+                    ? <Area
+                      type='linear'
+                      key={i++}
+                      connectNulls={false}
+                      isAnimationActive={this.state.animated}
+                      dataKey={`${target.name}.MIN_MAX`}
+                      stroke="none"
+                      fill={Color(this.getColor(target)).alpha(0.2).lighten(0.1).string()}
+                      dot={false}
+                      name={`${(target.infos.label ? target.infos.label.value : target.name)} min / max bounds`}
+                    />
+                    : null
+                ]
               })
             )}
           </ComposedChart>
@@ -489,6 +563,10 @@ class MuninLineChart extends Component {
   }
 }
 const styles = theme => ({
+  formControl: {
+    margin: theme.spacing.unit,
+    minWidth: 120,
+  },
   graph: {
     marginTop: theme.spacing.unit * 4,
     marginBottom: theme.spacing.unit * 4,

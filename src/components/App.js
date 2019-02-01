@@ -326,7 +326,7 @@ class App extends Component {
                           onChange={this.handleCheckRealtime.bind(this)}
                         />
                       }
-                      label="last 24h, sliding realtime"
+                      label="Follow last 24h"
                     />
                   </Grid>
                 </Grid>

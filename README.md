@@ -41,6 +41,5 @@ serve -s build
 * Clean dependencies
 * Add authentication to backend
 * Enhance responsiveness
-* Use min / max information to provide more accurate graph reprensentations
 * Handle errors...
 * Think about more todos
