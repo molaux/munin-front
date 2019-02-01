@@ -518,7 +518,7 @@ class MuninLineChart extends Component {
                 return [
                   <SerieComponent
                     type='linear'
-                    key={i++}
+                    key={`main-${target.name}`}
                     connectNulls={false}
                     isAnimationActive={this.state.animated}
                     dataKey={`${target.name}.${this.state.isMultiDimensions ? this.state.dimension : 'AVERAGE'}`}
@@ -532,7 +532,7 @@ class MuninLineChart extends Component {
                     ? (!this.hasNegative(this.state.probe, target)
                       ? <Area
                           type='linear'
-                          key={i++}
+                          key={`minmax-single-${target.name}`}
                           connectNulls={false}
                           isAnimationActive={this.state.animated}
                           dataKey={`${target.name}.MIN_MAX`}
@@ -544,7 +544,7 @@ class MuninLineChart extends Component {
                       : [
                         <Area
                             type='linear'
-                            key={i++}
+                            key={`minmax-negative-${target.name}`}
                             connectNulls={false}
                             isAnimationActive={this.state.animated}
                             dataKey={`${target.name}.MIN_MAX[0]`}
@@ -555,7 +555,7 @@ class MuninLineChart extends Component {
                           />,
                           <Area
                               type='linear'
-                              key={i++}
+                              key={`minmax-positive-${target.name}`}
                               connectNulls={false}
                               isAnimationActive={this.state.animated}
                               dataKey={`${target.name}.MIN_MAX[1]`}
