@@ -325,7 +325,7 @@ class MuninLineChart extends Component {
     let sign = number < 0 ? -1 : 1
 
     let log1000 = Math.floor(Math.log(sign * number) / Math.log(1000))
-    let suffix = ''
+    let suffix
     switch (log1000) {
       case -2: suffix = 'µ'
         break
@@ -344,6 +344,8 @@ class MuninLineChart extends Component {
       default :
         if (log1000 !== 0) {
           suffix = `⏨${log1000 * 3}`
+        } else {
+          suffix = ''
         }
     }
     return (new Intl.NumberFormat({ maximumSignificantDigits: 3 }).format(number / Math.pow(1000, log1000)))+suffix
@@ -364,10 +366,10 @@ class MuninLineChart extends Component {
           let bounds = target.infos.critical.value.split(':')
           if (bounds.length > 1) {
             [low, high] = bounds
-          } else if (bounds.length = 1) {
+          } else if (bounds.length === 1) {
             [ high ] = bounds
           }
-          if (high !== undefined && value > parseFloat(high) || low !== undefined && value < parseFloat(low)) {
+          if ((high !== undefined && value > parseFloat(high)) || (low !== undefined && value < parseFloat(low))) {
             return 'critical'
           }
         }
@@ -376,10 +378,10 @@ class MuninLineChart extends Component {
           let bounds = target.infos.warning.value.split(':')
           if (bounds.length > 1) {
             [low, high] = bounds
-          } else if (bounds.length = 1) {
+          } else if (bounds.length === 1) {
             [ high ] = bounds
           }
-          if (high !== undefined && value > parseFloat(high) || low !== undefined && value < parseFloat(low)) {
+          if ((high !== undefined && value > parseFloat(high)) || (low !== undefined && value < parseFloat(low))) {
             return 'warning'
           }
         }

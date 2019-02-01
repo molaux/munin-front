@@ -38,7 +38,7 @@ import Host from './model/Host'
 import DomainListItem from './ui/DomainListItem'
 import Center from './ui/Center'
 
-import hideOnScroll from '../lib/hideOnScroll'
+// import hideOnScroll from '../lib/hideOnScroll'
 
 import { withStyles } from '@material-ui/core/styles'
 import classNames from 'classnames'

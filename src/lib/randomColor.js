@@ -134,6 +134,7 @@ export default (function(root, factory) {
         break;
 
       case 'light':
+      default:
         sMax = 55;
         break;
    }
@@ -158,6 +159,7 @@ export default (function(root, factory) {
         break;
 
       case 'random':
+      default:
         bMin = 0;
         bMax = 100;
         break;
@@ -167,7 +169,7 @@ export default (function(root, factory) {
   }
 
   function setFormat (hsv, options) {
-
+    var alpha
     switch (options.format) {
 
       case 'hsvArray':
@@ -182,7 +184,7 @@ export default (function(root, factory) {
 
       case 'hsla':
         var hslColor = HSVtoHSL(hsv);
-        var alpha = options.alpha || Math.random();
+        alpha = options.alpha || Math.random();
         return 'hsla('+hslColor[0]+', '+hslColor[1]+'%, '+hslColor[2]+'%, ' + alpha + ')';
 
       case 'rgbArray':
@@ -194,7 +196,7 @@ export default (function(root, factory) {
 
       case 'rgba':
         var rgbColor = HSVtoRGB(hsv);
-        var alpha = options.alpha || Math.random();
+        alpha = options.alpha || Math.random();
         return 'rgba(' + rgbColor.join(', ') + ', ' + alpha + ')';
 
       default:
@@ -286,7 +288,7 @@ export default (function(root, factory) {
 
     function componentToHex(c) {
         var hex = c.toString(16);
-        return hex.length == 1 ? '0' + hex : hex;
+        return hex.length === 1 ? '0' + hex : hex;
     }
 
     var hex = '#' + componentToHex(rgb[0]) + componentToHex(rgb[1]) + componentToHex(rgb[2]);
@@ -393,6 +395,7 @@ export default (function(root, factory) {
       case 3: r = p; g = q; b = v;  break;
       case 4: r = t; g = p; b = v;  break;
       case 5: r = v; g = p; b = q;  break;
+      default: throw new Error('Should not happen')
     }
 
     var result = [Math.floor(r*255), Math.floor(g*255), Math.floor(b*255)];
@@ -437,6 +440,7 @@ export default (function(root, factory) {
       case red: return [ 60 * (((green - blue) / delta) % 6) || 0, saturation, cMax ];
       case green: return [ 60 * (((blue - red) / delta) + 2) || 0, saturation, cMax ];
       case blue: return [ 60 * (((red - green) / delta) + 4) || 0, saturation, cMax ];
+      default: throw new Error('Should not happen')
     }
   }
 
@@ -451,15 +455,6 @@ export default (function(root, factory) {
       Math.round(s*v / (k<1 ? k : 2-k) * 10000) / 100,
       k/2 * 100
     ];
-  }
-
-  function stringToInteger (string) {
-    var total = 0
-    for (var i = 0; i !== string.length; i++) {
-      if (total >= Number.MAX_SAFE_INTEGER) break;
-      total += string.charCodeAt(i)
-    }
-    return total
   }
 
   return randomColor;
