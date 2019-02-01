@@ -511,6 +511,10 @@ class MuninLineChart extends Component {
                 let SerieComponent = this.hasNegative(this.state.probe, target) || (target.infos.draw && (target.infos.draw.value === 'AREA' || target.infos.draw.value === 'AREASTACK' || target.infos.draw.value === 'STACK'))
                   ? Area
                   : Line
+                let showMinMax = this.state.isMultiDimensions && this.state.showMinMax && (SerieComponent === Line
+                    || this.hasNegative(this.state.probe, target)
+                    || (target.infos.draw && (target.infos.draw.value === 'AREA')))
+
                 return [
                   <SerieComponent
                     type='linear'
@@ -524,18 +528,43 @@ class MuninLineChart extends Component {
                     dot={false}
                     name={target.infos.label ? target.infos.label.value : target.name}
                   />,
-                  this.state.isMultiDimensions && SerieComponent === Line && this.state.showMinMax
-                    ? <Area
-                      type='linear'
-                      key={i++}
-                      connectNulls={false}
-                      isAnimationActive={this.state.animated}
-                      dataKey={`${target.name}.MIN_MAX`}
-                      stroke="none"
-                      fill={Color(this.getColor(target)).alpha(0.2).lighten(0.1).string()}
-                      dot={false}
-                      name={`${(target.infos.label ? target.infos.label.value : target.name)} min / max bounds`}
-                    />
+                  showMinMax
+                    ? (!this.hasNegative(this.state.probe, target)
+                      ? <Area
+                          type='linear'
+                          key={i++}
+                          connectNulls={false}
+                          isAnimationActive={this.state.animated}
+                          dataKey={`${target.name}.MIN_MAX`}
+                          stroke="none"
+                          fill={Color(this.getColor(target)).alpha(0.2).lighten(0.1).string()}
+                          dot={false}
+                          name={`${(target.infos.label ? target.infos.label.value : target.name)} min / max bounds`}
+                        />
+                      : [
+                        <Area
+                            type='linear'
+                            key={i++}
+                            connectNulls={false}
+                            isAnimationActive={this.state.animated}
+                            dataKey={`${target.name}.MIN_MAX[0]`}
+                            stroke="none"
+                            fill={Color(this.getColor(target)).alpha(0.2).lighten(0.1).string()}
+                            dot={false}
+                            name={`${(target.infos.label ? target.infos.label.value : target.name)} min / max bounds`}
+                          />,
+                          <Area
+                              type='linear'
+                              key={i++}
+                              connectNulls={false}
+                              isAnimationActive={this.state.animated}
+                              dataKey={`${target.name}.MIN_MAX[1]`}
+                              stroke="none"
+                              fill={Color(this.getColor(target)).alpha(0.2).lighten(0.1).string()}
+                              dot={false}
+                              name={`${(target.infos.label ? target.infos.label.value : target.name)} min / max bounds`}
+                            />
+                      ])
                     : null
                 ]
               })
