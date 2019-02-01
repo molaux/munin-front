@@ -43,24 +43,24 @@ class MuninLineChart extends Component {
       // MIN
       let key = timedValue.MIN !== undefined ? 'MIN' : 'AVERAGE'
 
-      if (timedValue[key] !== undefined && timedValue[key] !== null && (stats.MIN === null || stats.MIN > timedValue[key])) {
-        stats.MIN = timedValue[key]
+      if (timedValue[key] !== undefined && timedValue[key] !== null && (stats.MIN === null || stats.MIN >  this.computeCdef(target, timedValue[key]))) {
+        stats.MIN = this.computeCdef(target, timedValue[key])
       }
 
       // MAX
       key = timedValue.MAX !== undefined ? 'MAX' : 'AVERAGE'
-      if (timedValue[key] !== undefined && timedValue[key] !== null && (stats.MAX === null || stats.MAX < timedValue[key])) {
-        stats.MAX = timedValue[key]
+      if (timedValue[key] !== undefined && timedValue[key] !== null && (stats.MAX === null || stats.MAX <  this.computeCdef(target, timedValue[key]))) {
+        stats.MAX = this.computeCdef(target, timedValue[key])
       }
 
       // AVERAGE
       stats.count ++
       stats.AVERAGE = stats.AVERAGE === null
-        ? timedValue.AVERAGE
-        : stats.AVERAGE * (stats.count - 1) / stats.count + timedValue.AVERAGE / stats.count
+        ? this.computeCdef(target, timedValue.AVERAGE)
+        : stats.AVERAGE * (stats.count - 1) / stats.count + this.computeCdef(target, timedValue.AVERAGE) / stats.count
 
       if (timedValue.AVERAGE !== undefined && timedValue.AVERAGE !== null) {
-        stats.current = timedValue.AVERAGE
+        stats.current = this.computeCdef(target, timedValue.AVERAGE)
       }
 
       return stats
@@ -232,13 +232,43 @@ class MuninLineChart extends Component {
     })
   }
 
+  computeCdef (target, value) {
+    if (target.infos.cdef !== undefined) {
+      let computeStack = target.infos.cdef.value.split(',')
+      let [left, right, operator] = computeStack
+      // TODO : don't assume left to be self and compute longer stack as describe in
+      // https://oss.oetiker.ch/rrdtool/tut/cdeftutorial.en.html
+      // http://munin-monitoring.org/wiki/fieldname.cdef
+      // TODO : add some kind of cache
+      switch (operator) {
+        case '*':
+          value *= parseFloat(right)
+          break
+        case '/':
+          value /= parseFloat(right)
+          break
+        case '+':
+          value += parseFloat(right)
+          break
+        case '-':
+          value -= parseFloat(right)
+          break
+        default:
+          throw new Error('Unknown cdef operator ' + operator)
+      }
+      return value
+    } else {
+      return value
+    }
+  }
+
   getValues (probe, target, timedValue) {
     return Object.keys(timedValue).reduce(
       (yielded, key) => {
         if (key === 'time') {
           yielded[key] = timedValue[key]
         } else {
-          yielded[key] = timedValue[key] === null ? null : (this.hasPositive(probe, target) ? -1 : 1) * timedValue[key]
+          yielded[key] = timedValue[key] === null ? null : (this.hasPositive(probe, target) ? -1 : 1) * this.computeCdef(target, timedValue[key])
         }
         return yielded
       },
