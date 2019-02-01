@@ -64,15 +64,21 @@ export default (function(root, factory) {
       options.count = null;
 
       var i = 0;
-
+      var dist = 0.1;
       while (totalColors > colors.length) {
         i ++;
         var newColor = randomColor(options);
         options.seed = seed;
-        if (minDist(newColor, colors) > 0.1) {
+        if (minDist(newColor, colors) > dist) {
           colors.push(newColor);
         }
-        if (i > 100) {
+        if (i === 50) {
+          dist /= 2
+        }
+        if (i === 100) {
+          dist /= 2
+        }
+        if (i > 1000) {
           throw new Error('no color found');
         }
       }
