@@ -4,6 +4,8 @@ const MuninDB = require('munin-db')
 const os = require('os')
 const { subDays } = require('date-fns')
 
+var lastLimits = {}
+
 const typeDefs = `
   type Query {
     hostname: String,
@@ -31,6 +33,7 @@ const typeDefs = `
   type Target {
       name: String!
       infos: JSON
+      state: String
       serie(from: String!, to: String!): [JSON]
   }
   scalar JSON
@@ -102,6 +105,13 @@ const resolvers = {
   },
   Target: {
     infos: (obj) => munin.describe(obj.domain, obj.host, obj.probe, obj.name),
+    state: (obj) => lastLimits[obj.domain] !== undefined
+      && lastLimits[obj.domain] !== undefined
+      && lastLimits[obj.domain][obj.host] !== undefined
+      && lastLimits[obj.domain][obj.host][obj.probe] !== undefined
+      && lastLimits[obj.domain][obj.host][obj.probe][obj.name] !== undefined
+        ? lastLimits[obj.domain][obj.host][obj.probe][obj.name]
+        : 'ok',
     serie: (obj, args) => munin.query(obj.domain, obj.host, obj.probe, obj.name, new Date(args.from), new Date(args.to), null, new Date(args.from) < subDays(new Date(), 2) ? ['MIN', 'MAX', 'AVERAGE'] : ['AVERAGE'])
       .then(data => data.map(timed => ({
           ...timed,
@@ -114,7 +124,15 @@ const resolvers = {
 const options = { port: 4000 }
 const server = new GraphQLServer({ typeDefs, resolvers })
 server.use(compression())
-setInterval(() => { console.log('reloading...'); munin.load()}, 5 * 60 * 1000)
+
+// Periodically refresh structure and limits
+setInterval(() => {
+    munin.load()
+    munin.limits().then(limits => lastLimits = limits)
+  }, 5 * 60 * 1000)
+
+// First load
+munin.limits().then(limits => lastLimits = limits)
 munin.load().then(() => server.start(options, () => {
   console.log('Server is running on localhost:' + options.port)
 }))

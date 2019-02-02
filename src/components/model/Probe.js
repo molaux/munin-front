@@ -12,7 +12,7 @@ class Probe extends Component {
   render () {
     const { probe, classes } = this.props
 
-    return <Paper elevation={4} className={classes.paper}>
+    return <Paper id={probe.name} elevation={4} className={classes.paper}>
         <Typography variant='h5' component='h4'>{probe.infos.graph_title.value}</Typography>
         { probe.infos.graph_info ? <Typography component='p'>{probe.infos.graph_info.value}</Typography> : '' }
         <MuninLineChart probe={probe} />

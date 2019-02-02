@@ -36,6 +36,7 @@ import './App.css'
 import logo from './logo.svg'
 import Host from './model/Host'
 import DomainListItem from './ui/DomainListItem'
+import NotificationsDialog from './ui/NotificationsDialog'
 import Center from './ui/Center'
 
 // import hideOnScroll from '../lib/hideOnScroll'
@@ -318,7 +319,7 @@ class App extends Component {
 
                     />
                   </Grid>
-                  <Grid item xs={4} >
+                  <Grid item xs={3} >
                     <FormControlLabel
                       control={
                         <Checkbox
@@ -328,6 +329,14 @@ class App extends Component {
                       }
                       label="Follow last 24h"
                     />
+                  </Grid>
+                  <Grid item xs={1} >
+                    <NotificationsDialog
+                      domains={this.state.domains}
+                      dialogTheme={theme}
+                      buttonTheme={darkTheme}
+                      from={this.state.timeRange.start.toISOString()}
+                      to={this.state.timeRange.end.toISOString()} />
                   </Grid>
                 </Grid>
               </Toolbar>
@@ -390,7 +399,13 @@ const ITEMS_QUERY = gql`
           name
         }
         probes {
+          name
           infos
+          targets {
+            name
+            infos
+            state
+          }
         }
       }
     }

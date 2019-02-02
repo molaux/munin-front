@@ -11,7 +11,6 @@ import { InMemoryCache } from 'apollo-cache-inmemory'
 import { BrowserRouter, Switch, Route } from 'react-router-dom'
 
 const httpLink = new HttpLink({ uri: '//' + window.location.hostname + ':4000/' })
-//const httpLink = new HttpLink({ uri: '//node:4000/' })
 
 const client = new ApolloClient({
   link: httpLink,
@@ -19,9 +18,7 @@ const client = new ApolloClient({
 })
 
 let basePath = process.env.PUBLIC_URL
-//let basePath = ''
 basePath = basePath.length > 0 && basePath[basePath.count-1] === '/' ? basePath.substring(0, -1) : basePath
-// console.log(GRAPHQL_PORT);
 
 ReactDOM.render(
   <BrowserRouter basename={basePath}>
@@ -49,5 +46,4 @@ ReactDOM.render(
   , document.getElementById('root')
 )
 
-// ReactDOM.render(<App />, document.getElementById('root'));
 registerServiceWorker()

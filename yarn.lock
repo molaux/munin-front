@@ -6411,9 +6411,9 @@ multicast-dns@^6.0.1:
     dns-packet "^1.3.1"
     thunky "^1.0.2"
 
-munin-db@^0.3.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/munin-db/-/munin-db-0.2.0.tgz#8da6f4ec4a262c741b06989536fd888adfaacf34"
+munin-db@^0.3.1:
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/munin-db/-/munin-db-0.3.1.tgz#cc6099e5bd0f8abdde502eb1f7f41feef8cf2fb9"
   dependencies:
     dateformat "^2.0.0"
     fs "0.0.1-security"
@@ -7946,6 +7946,12 @@ react-router-dom@^4.3.1:
     prop-types "^15.6.1"
     react-router "^4.3.1"
     warning "^4.0.1"
+
+react-router-hash-link@^1.2.1:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/react-router-hash-link/-/react-router-hash-link-1.2.1.tgz#da3b6384e5bff90e9b2172d2e689a994646f2f45"
+  dependencies:
+    prop-types "^15.6.0"
 
 react-router@^4.3.1:
   version "4.3.1"
