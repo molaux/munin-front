@@ -127,7 +127,7 @@ class NotificationsDialog extends React.Component {
                 domain: domain.name,
                 host: host.name,
                 category: category.name,
-                probe: probe.infos.graph_title.value,
+                probe: probe.infos.graph_title ? probe.infos.graph_title.value : probe.name,
                 probeId: probe.name,
                 target: (target.infos.label ? target.infos.label.value : target.name),
                 state: target.state
