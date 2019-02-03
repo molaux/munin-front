@@ -20,8 +20,11 @@ import Divider from '@material-ui/core/Divider'
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Checkbox from '@material-ui/core/Checkbox';
 import MenuIcon from '@material-ui/icons/Menu';
+import TimerIcon from '@material-ui/icons/Timer';
+import TimerOffIcon from '@material-ui/icons/TimerOff';
 import Hidden from '@material-ui/core/Hidden';
 import IconButton from '@material-ui/core/IconButton';
+import Button from '@material-ui/core/Button';
 
 import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 import { MuiPickersUtilsProvider, DateTimePicker } from 'material-ui-pickers'
@@ -123,8 +126,8 @@ class App extends Component {
   }
 
   handleCheckRealtime (event) {
-    this.setState({ realtime: event.target.checked })
-    if (event.target.checked) {
+    this.setState(state => ({ realtime: !state.realtime }))
+    if (this.state.realtime) {
       this.launchAutoRefresh()
     } else {
       this.stopAutoRefresh()
@@ -235,6 +238,7 @@ class App extends Component {
 
   render () {
     let { classes, theme } = this.props
+
     const drawer = isMobile => (
       <div>
         <div className={classes.toolbar + ' ' + classes.fixedHeightToolbar}>
@@ -269,10 +273,10 @@ class App extends Component {
             className={classNames(classes.appBar)}
           >
             <MuiThemeProvider theme={darkTheme}>
-              <Toolbar>
+              <Toolbar variant="dense" disableGutters={true}>
                 <Grid container spacing={8}>
-                  <Grid item xs={12}>
-                    <Typography variant='h6' color='inherit' noWrap>
+                  <Hidden mdUp >
+                    <Grid item xs={2}>
                       <IconButton
                         color="inherit"
                         aria-label="Open drawer"
@@ -281,14 +285,31 @@ class App extends Component {
                       >
                         <MenuIcon />
                       </IconButton>
-                      { this.props.data.loading ? 'Munin-front is attempting to query graphql server...' : `Munin on ${this.props.data.hostname}` }
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={4}>
+                    </Grid>
+                  </Hidden>
+                  <Hidden smDown >
+                    <Grid item xs={10}>
+                      <Typography variant='h6' color='inherit' noWrap>
+                        { this.props.data.loading ? 'Munin-front is attempting to query graphql server...' : `Munin on ${this.props.data.hostname}` }
+                      </Typography>
+                    </Grid>
+                  </Hidden>
+                  <Hidden mdUp >
+                    <Grid item xs={10} align='right'>
+                      <NotificationsDialog
+                        domains={this.state.domains}
+                        dialogTheme={theme}
+                        buttonTheme={darkTheme}
+                        from={this.state.timeRange.start.toISOString()}
+                        to={this.state.timeRange.end.toISOString()} />
+                    </Grid>
+                  </Hidden>
+                  <Grid item xs={5} md={4}>
                     <DateTimePicker
-                      helperText="Start date / time"
+                      classes={{ root: classes.datetimePicker}}
+                      label="Start date / time"
                       disabled={this.state.realtime}
-                      key={this.state.timeRange.start.getTime()}
+                      key="start"
                       value={this.state.timeRange.start}
                       disableFuture
                       autoOk
@@ -301,11 +322,12 @@ class App extends Component {
                       timeIcon={<AccessTime />}
                     />
                   </Grid>
-                  <Grid item xs={4}>
+                  <Grid item xs={5} md={4}>
                     <DateTimePicker
-                      helperText="End date / time"
+                      classes={{ root: classes.datetimePicker }}
+                      label="End date / time"
                       disabled={this.state.realtime}
-                      key={this.state.timeRange.end.getTime()}
+                      key="end"
                       value={this.state.timeRange.end}
                       disableFuture
                       autoOk
@@ -316,28 +338,39 @@ class App extends Component {
                       rightArrowIcon={<KeyboardArrowRight />}
                       dateRangeIcon={<DateRange />}
                       timeIcon={<AccessTime />}
-
                     />
                   </Grid>
-                  <Grid item xs={3} >
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={this.state.realtime}
-                          onChange={this.handleCheckRealtime.bind(this)}
-                        />
-                      }
-                      label="Follow last 24h"
-                    />
+                  <Grid item xs={2}  align='right'  >
+                    <Hidden smDown implementation="css">
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={this.state.realtime}
+                            onChange={this.handleCheckRealtime.bind(this)}
+                          />
+                        }
+                        label="Follow last 24h"
+                      />
+                    </Hidden>
+                    <Hidden mdUp implementation="css">
+                      <IconButton
+                        onClick={this.handleCheckRealtime.bind(this)}>
+                        {this.state.realtime
+                          ? <TimerIcon />
+                          : <TimerOffIcon />}
+                      </IconButton>
+                    </Hidden>
                   </Grid>
-                  <Grid item xs={1} >
-                    <NotificationsDialog
-                      domains={this.state.domains}
-                      dialogTheme={theme}
-                      buttonTheme={darkTheme}
-                      from={this.state.timeRange.start.toISOString()}
-                      to={this.state.timeRange.end.toISOString()} />
-                  </Grid>
+                  <Hidden smDown implementation="css">
+                    <Grid item xs={2} >
+                      <NotificationsDialog
+                        domains={this.state.domains}
+                        dialogTheme={theme}
+                        buttonTheme={darkTheme}
+                        from={this.state.timeRange.start.toISOString()}
+                        to={this.state.timeRange.end.toISOString()} />
+                    </Grid>
+                  </Hidden>
                 </Grid>
               </Toolbar>
             </MuiThemeProvider>
@@ -462,5 +495,14 @@ export default graphql(ITEMS_QUERY)(withStyles(theme => ({
       height: appBarHeight - 2 * theme.spacing.unit
     }
   },
-
+  datetimePicker: {
+    fontSize: '0.5em'
+  },
+  flex: {
+    flex: 1,
+  },
+  //   helperText: {
+  //     display: 'none'
+  //   }
+  // }
 }), { withTheme: true })(withRouter(App)))

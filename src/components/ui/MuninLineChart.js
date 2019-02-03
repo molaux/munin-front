@@ -314,17 +314,22 @@ class MuninLineChart extends Component {
   formatLabel (label) {
     return Array.isArray(label)
       ? `[${label.map(this.formatLabel).join(', ')}]`
-      : new Intl.NumberFormat({ maximumSignificantDigits: 3 }).format(label)
+        : new Intl.NumberFormat({ maximumSignificantDigits: 3 }).format(label)
   }
 
-  formatYAxisLabel (number) {
-    if (number === 0) {
-      return 0
+  formatYAxisLabel (number, maximumSignificantDigits) {
+    if (number === 0 || Number.isNaN(number)) {
+      return number
+    }
+
+    if (maximumSignificantDigits === undefined) {
+      maximumSignificantDigits = 3
     }
 
     let sign = number < 0 ? -1 : 1
 
     let log1000 = Math.floor(Math.log(sign * number) / Math.log(1000))
+
     let suffix
     switch (log1000) {
       case -2: suffix = 'µ'
@@ -348,7 +353,11 @@ class MuninLineChart extends Component {
           suffix = ''
         }
     }
-    return (new Intl.NumberFormat({ maximumSignificantDigits: 3 }).format(number / Math.pow(1000, log1000)))+suffix
+    let factor = number / Math.pow(1000, log1000)
+    if (Number.isNaN(factor)) {
+      return number
+    }
+    return (new Intl.NumberFormat({ maximumSignificantDigits: maximumSignificantDigits }).format(factor))+suffix
   }
 
   handleDimensionChange (event) {
@@ -387,7 +396,7 @@ class MuninLineChart extends Component {
         }
         return 'normal'
     }
-    const MonitoredValue = ({value, target}) => <span className={this.props.classes[`monitored-${getMonitoredValueLevel(value, target)}`]}>{value}</span>
+    const MonitoredValue = ({value, target}) => <span className={this.props.classes[`monitored-${getMonitoredValueLevel(value, target)}`]}>{this.formatYAxisLabel(value,2)}</span>
 
     const NotAxisTickButLabel = props => {
       return (<g transform={'translate( ' + (props.x + props.dx) + ',' + (props.y + props.dy) + ' )'} >
@@ -414,22 +423,22 @@ class MuninLineChart extends Component {
           )
           : props.target.name}
       </TableCell>
-      <TableCell key="current" align="right">
+      <TableCell classes={{ root: this.props.classes.legendCell }} key="current" align="right">
         <MonitoredValue
           target= {props.target}
           value={Number.parseFloat(props.target.stats.current).toFixed(2)}/>
       </TableCell>
-      <TableCell key="min" align="right">
+      <TableCell classes={{ root: this.props.classes.legendCell }} key="min" align="right">
         <MonitoredValue
           target= {props.target}
           value={Number.parseFloat(props.target.stats.MIN).toFixed(2)}/>
       </TableCell>
-      <TableCell key="average" align="right">
+      <TableCell classes={{ root: this.props.classes.legendCell }} key="average" align="right">
         <MonitoredValue
           target= {props.target}
           value={Number.parseFloat(props.target.stats.AVERAGE).toFixed(2)}/>
       </TableCell>
-      <TableCell key="max" align="right">
+      <TableCell classes={{ root: this.props.classes.legendCell }} key="max" align="right">
         <MonitoredValue
           target= {props.target}
           value={Number.parseFloat(props.target.stats.MAX).toFixed(2)}/>
@@ -574,11 +583,11 @@ class MuninLineChart extends Component {
         <Table className={this.props.classes.legendTable} padding="dense" >
           <TableHead>
             <TableRow>
-              <TableCell>Target</TableCell>
-              <TableCell align="right">Currrent value</TableCell>
-              <TableCell align="right">Min</TableCell>
-              <TableCell align="right">Average</TableCell>
-              <TableCell align="right">Max</TableCell>
+              <TableCell classes={{ root: this.props.classes.legendCell }}>Target</TableCell>
+              <TableCell classes={{ root: this.props.classes.legendCell }} align="right">Currrent value</TableCell>
+              <TableCell classes={{ root: this.props.classes.legendCell }} align="right">Min</TableCell>
+              <TableCell classes={{ root: this.props.classes.legendCell }} align="right">Average</TableCell>
+              <TableCell classes={{ root: this.props.classes.legendCell }} align="right">Max</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -612,8 +621,22 @@ const styles = theme => ({
     position: 'relative',
   },
   legendRowHead: {
-    paddingLeft: '4em',
-    textIndent: '-2em'
+    paddingLeft: theme.spacing.unit * 4.5,
+    paddingRight: theme.spacing.unit * 1,
+    textIndent: -theme.spacing.unit * 3.5,
+    [theme.breakpoints.up('md')]: {
+      paddingLeft: theme.spacing.unit * 6.5,
+      paddingRight: -theme.spacing.unit * 3,
+      textIndent: -theme.spacing.unit * 3.5
+    },
+  },
+  legendCell: {
+    paddingLeft: theme.spacing.unit * 1,
+    paddingRight: theme.spacing.unit * 1,
+    [theme.breakpoints.up('md')]: {
+      paddingLeft: theme.spacing.unit * 3,
+      paddingRight: theme.spacing.unit * 3,
+    },
   },
   legendIcon: {
     display: 'inline-block',

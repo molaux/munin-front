@@ -104,10 +104,17 @@ const styles = theme => ({
     flexGrow: 1,
     overflow: 'auto',
     backgroundColor: theme.palette.background.default,
-    padding: theme.spacing.unit * 3,
+    paddingTop: theme.spacing.unit * 3,
+    paddingBottom: theme.spacing.unit * 3,
+    paddingLeft: 0,
+    paddingRight: 0,
     maxWidth: '100%',
     flexShrink: 1,
-    flexBasis: 0
+    flexBasis: 0,
+    [theme.breakpoints.up('md')]: {
+      paddingLeft: theme.spacing.unit * 3,
+      paddingRight: theme.spacing.unit * 3,
+    },
   },
   toolbar: theme.mixins.toolbar,
   selected: {
