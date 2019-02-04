@@ -246,6 +246,7 @@ class App extends Component {
         </div>
         <Divider />
         <List
+          classes={{subheader: classes.drawerSubheader}}
           component='nav'
           subheader={<ListSubheader component='div'>Domains / hosts</ListSubheader>}>
           {this.state.domains && Object.values(this.state.domains)
@@ -470,6 +471,9 @@ export default graphql(ITEMS_QUERY)(withStyles(theme => ({
   },
   drawerPaper: {
     width: drawerWidth,
+  },
+  drawerSubheader: {
+    backgroundColor: theme.palette.background.default
   },
   appContent: {
     flexGrow: 1,
