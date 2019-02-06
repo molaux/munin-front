@@ -1,4 +1,4 @@
-This project aims to provide an alternative web interface to Munin html (2.0).
+This project is an attempt to provide an alternative web interface to Munin html (2.0).
 
 It lays on NodeJS, Webpack, React, Apollo Graphql, Material UI, Recharts... and many more.
 
