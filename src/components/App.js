@@ -60,6 +60,7 @@ const darkTheme = createMuiTheme({
 class App extends Component {
   constructor (props) {
     super(props)
+    this.refreshTimerId = null
     this.state = {
       domains: {},
       realtime: true,
@@ -126,8 +127,9 @@ class App extends Component {
   }
 
   handleCheckRealtime (event) {
-    this.setState(state => ({ realtime: !state.realtime }))
-    if (this.state.realtime) {
+    let newRealtimeState = !this.state.realtime
+    this.setState(state => ({ realtime: newRealtimeState }))
+    if (newRealtimeState) {
       this.launchAutoRefresh()
     } else {
       this.stopAutoRefresh()
@@ -135,16 +137,20 @@ class App extends Component {
   }
 
   launchAutoRefresh () {
-    this.refreshTimerId = setInterval(
-      this.updateTimerangeFromCurrent.bind(this),
-      5 * 60 * 1000
-    )
-    this.updateTimerangeFromCurrent()
-
+    if (this.refreshTimerId === null) {
+      this.refreshTimerId = setInterval(
+        this.updateTimerangeFromCurrent.bind(this),
+        5 * 60 * 1000
+      )
+      this.updateTimerangeFromCurrent()
+    }
   }
 
   stopAutoRefresh () {
-    clearInterval(this.refreshTimerId)
+    if (this.refreshTimerId !== null) {
+      clearInterval(this.refreshTimerId)
+      this.refreshTimerId = null
+    }
   }
 
   updateTimerangeFromCurrent () {
@@ -153,7 +159,6 @@ class App extends Component {
       start: subDays(now, 1),
       end: now
     } }
-
     this.setState(newState)
   }
 
@@ -228,7 +233,7 @@ class App extends Component {
 
   componentWillUnmount() {
     clearInterval(this.refetchTimerId)
-    clearInterval(this.refreshTimerId)
+    this.stopAutoRefresh()
   }
 
   handleDrawerToggle = () => {
