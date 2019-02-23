@@ -1,8 +1,13 @@
-This project aims to provide an alternative web interface for Munin monitoring database.
+This project is an attempt to provide an alternative web interface to Munin html (2.0).
 
-I developped it initialy in a learning purpose of React / Apollo Graphql stack.
+It lays on NodeJS, Webpack, React, Apollo Graphql, Material UI, Recharts... and many more.
 
-The project is composed of a React frontend and a GraphQL backend (itself using another project of mine, [munin-db](https://github.com/molaux/munin-db) to access munin data files). It provides interractive SVG graph reprensations of Munin plugins (using recharts). It can be used to visualize historical data by picking end and start datetimes or to follow the last 24h sliding window.
+The GraphQL backend uses another project of mine, [munin-db](https://github.com/molaux/munin-db) to access munin data files. The frontend provides interractive SVG graph reprensations of Munin plugins (using Recharts). 
+
+It can be used to visualize historical data by picking end and start datetimes or to follow the last 24h sliding window. 
+I recently added notifications extracted from munin-limits datafile.
+
+As it is not secured yet, it should be run in a local secured Network.
 
 ![General Picture](/doc/pictures/general-picture.png)
 
