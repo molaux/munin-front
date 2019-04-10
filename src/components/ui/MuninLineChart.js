@@ -44,7 +44,7 @@ class MuninLineChart extends Component {
 
   toggleTargetVisibility(target) {
       target.visible = !target.visible
-      this.setState({ animated: false, probe: this.state.probe })
+      this.setState(state => ({ animated: false, probe: state.probe }))
   }
 
   getStats(target) {
@@ -528,7 +528,6 @@ class MuninLineChart extends Component {
                 let showMinMax = this.state.isMultiDimensions && this.state.showMinMax && (SerieComponent === Line
                     || this.hasNegative(this.state.probe, target)
                     || (target.infos.draw && (target.infos.draw.value === 'AREA')))
-
                 return [
                   <SerieComponent
                     type='linear'
@@ -596,7 +595,7 @@ class MuninLineChart extends Component {
             </TableRow>
           </TableHead>
           <TableBody>
-            {Object.values(this.state.stacks).reverse().map(stack => stack.reverse().filter(target => !this.hasPositive(this.state.probe, target)).map((target, index2) => [
+            {Object.values(this.state.stacks).reverse().map(stack => Array.from(stack).reverse().filter(target => !this.hasPositive(this.state.probe, target)).map((target, index2) => [
               <LegendRow key="positive" probe={ this.state.probe } target={ target }/>,
               this.hasNegative(this.state.probe, target)
                 ? <LegendRow key="negative" probe={ this.state.probe } target={ this.getNegative(this.state.probe, target) }/>
