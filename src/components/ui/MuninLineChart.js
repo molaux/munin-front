@@ -16,6 +16,8 @@ import Select from '@material-ui/core/Select';
 import Checkbox from '@material-ui/core/Checkbox';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 
+import MuninColours from './MuninColours'
+
 class MuninLineChart extends Component {
   constructor (props) {
     super(props)
@@ -86,7 +88,9 @@ class MuninLineChart extends Component {
     }
 
     if (target.infos.colour) {
-      return `#${target.infos.colour.value}`
+      return target.infos.colour.value.startsWith('COLOUR')
+        ? MuninColours[target.infos.colour.value]
+        : `#${target.infos.colour.value}`
     }
 
     return this.state.colors[this.state.probe.targets.indexOf(target)]
@@ -219,7 +223,8 @@ class MuninLineChart extends Component {
     let currentStack = null
     let orderedTargets = probe.infos.graph_order
       ? probe.infos.graph_order.value.split(' ').filter((value, index, self) => self.indexOf(value) === index )
-      : probe.targets.map(target => target.name)
+      : probe.targets.map(target => target.name).sort()
+
     for (let t of orderedTargets) {
       // retrieve target
       let targets = probe.targets.filter(target => target.name === t)
