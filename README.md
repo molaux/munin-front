@@ -43,8 +43,6 @@ serve -s build
 ## Todo
 * Complete this doc input
 * Clean code
-* Clean dependencies
 * Add authentication to backend
-* Enhance responsiveness
 * Handle errors...
 * Think about more todos
