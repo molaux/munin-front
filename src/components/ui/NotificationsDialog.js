@@ -24,7 +24,7 @@ import { MuiThemeProvider } from '@material-ui/core/styles';
 
 const styles = theme => ({
   margin: {
-    margin: theme.spacing.unit * 2,
+    margin: theme.spacing(2),
   },
   appBar: {
     position: 'relative',
@@ -35,7 +35,7 @@ const styles = theme => ({
   level: {
     ...theme.typography.button,
     backgroundColor: theme.palette.common.white,
-    padding: theme.spacing.unit,
+    padding: theme.spacing(1),
     borderRadius: '0.5em',
     '&.critical': {
       backgroundColor: 'red'
@@ -50,9 +50,7 @@ const styles = theme => ({
   }
 });
 
-function Transition(props) {
-  return <Slide direction="up" {...props} />;
-}
+const Transition = React.forwardRef((props, ref) => <Slide direction="up" {...props} ref={ref} />)
 
 class NotificationsDialog extends React.Component {
   state = {
@@ -148,7 +146,7 @@ class NotificationsDialog extends React.Component {
   }
 
   render() {
-    const { classes, domains, dialogTheme, buttonTheme, from, to } = this.props;
+    const { classes, dialogTheme, buttonTheme, from, to } = this.props;
     const NotificationIcon = props => {
       switch (props.level) {
         case 'critical':

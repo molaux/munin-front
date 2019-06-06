@@ -25,7 +25,7 @@ class DomainListItem extends Component {
           <ListItemIcon>
             <Domain />
           </ListItemIcon>
-          <ListItemText inset primary={domain.name} />
+          <ListItemText primary={domain.name} />
           {domain.collapse ? <ExpandMore /> : <ExpandLess />}
         </ListItem>
         <Collapse key={`domain-${domain.name}-collapse`} in={!domain.collapse} timeout="auto" unmountOnExit>
@@ -41,7 +41,7 @@ class DomainListItem extends Component {
                 <ListItemIcon className={classes.icon}>
                   <Computer />
                 </ListItemIcon>
-                <ListItemText classes={{ primary: classes.primary }} inset primary={host.name} />
+                <ListItemText classes={{ primary: classes.primary }} primary={host.name} />
                 <Hidden mdUp implementation="css">
                   {host.collapse ? <ExpandMore /> : <ExpandLess />}
                 </Hidden>
@@ -58,7 +58,7 @@ class DomainListItem extends Component {
                     <ListItemIcon className={classes.icon}>
                       <ShowChart />
                     </ListItemIcon>
-                    <ListItemText classes={{ primary: classes.primary }} inset primary={category.name} />
+                    <ListItemText classes={{ primary: classes.primary }} primary={category.name} />
                   </ListItem>) }
                 </List>
               </Collapse>
@@ -77,10 +77,10 @@ const styles = theme => ({
     backgroundColor: theme.palette.background.paper
   },
   nested: {
-    paddingLeft: theme.spacing.unit * 3
+    paddingLeft: theme.spacing(3)
   },
   nested2: {
-    paddingLeft: theme.spacing.unit * 4
+    paddingLeft: theme.spacing(4)
   },
   selected: {
     '&, &:hover': {

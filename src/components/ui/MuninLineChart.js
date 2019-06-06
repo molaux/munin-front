@@ -264,7 +264,8 @@ class MuninLineChart extends Component {
   computeCdef (target, value) {
     if (target.infos.cdef !== undefined) {
       let computeStack = target.infos.cdef.value.split(',')
-      let [left, right, operator] = computeStack
+      // let [left, right, operator] = computeStack
+      let [right, operator] = computeStack.slice(1)
       // TODO : don't assume left to be self and compute longer stack as describe in
       // https://oss.oetiker.ch/rrdtool/tut/cdeftutorial.en.html
       // http://munin-monitoring.org/wiki/fieldname.cdef
@@ -450,7 +451,6 @@ class MuninLineChart extends Component {
       </TableCell>
     </TableRow>
 
-    let i = 0
     return <div>
         {this.state.isMultiDimensions ?
         [<FormControl key="select-dimension" className={this.props.classes.formControl}>
@@ -584,7 +584,7 @@ class MuninLineChart extends Component {
             )}
           </ComposedChart>
         </ResponsiveContainer>
-        <Table className={this.props.classes.legendTable} padding="dense" >
+        <Table className={this.props.classes.legendTable} size="small" >
           <TableHead>
             <TableRow>
               <TableCell classes={{ root: this.props.classes.legendCell }}>Target</TableCell>
@@ -608,12 +608,12 @@ class MuninLineChart extends Component {
 }
 const styles = theme => ({
   formControl: {
-    margin: theme.spacing.unit,
+    margin: theme.spacing(1),
     minWidth: 120,
   },
   graph: {
-    marginTop: theme.spacing.unit * 4,
-    marginBottom: theme.spacing.unit * 4,
+    marginTop: theme.spacing(4),
+    marginBottom: theme.spacing(4),
     '& .recharts-surface' : {
       // height: '500px'
     },
@@ -625,21 +625,21 @@ const styles = theme => ({
     position: 'relative',
   },
   legendRowHead: {
-    paddingLeft: theme.spacing.unit * 4.5,
-    paddingRight: theme.spacing.unit * 1,
-    textIndent: -theme.spacing.unit * 3.5,
+    paddingLeft: theme.spacing(4.5),
+    paddingRight: theme.spacing(1),
+    textIndent: -theme.spacing(3.5),
     [theme.breakpoints.up('md')]: {
-      paddingLeft: theme.spacing.unit * 6.5,
-      paddingRight: -theme.spacing.unit * 3,
-      textIndent: -theme.spacing.unit * 3.5
+      paddingLeft: theme.spacing(6.5),
+      paddingRight: -theme.spacing(3),
+      textIndent: -theme.spacing(3.5)
     },
   },
   legendCell: {
-    paddingLeft: theme.spacing.unit * 1,
-    paddingRight: theme.spacing.unit * 1,
+    paddingLeft: theme.spacing(1),
+    paddingRight: theme.spacing(1),
     [theme.breakpoints.up('md')]: {
-      paddingLeft: theme.spacing.unit * 3,
-      paddingRight: theme.spacing.unit * 3,
+      paddingLeft: theme.spacing(3),
+      paddingRight: theme.spacing(3),
     },
   },
   legendIcon: {

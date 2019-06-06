@@ -55,7 +55,7 @@ class Host extends Component {
                   <ListItemIcon className={classes.icon}>
                     <ShowChart />
                   </ListItemIcon>
-                  <ListItemText inset classes={{primary: classes.primary}} primary={category.name} />
+                  <ListItemText classes={{primary: classes.primary}} primary={category.name} />
                 </ListItem>
               )}
             </List>
@@ -104,16 +104,16 @@ const styles = theme => ({
     flexGrow: 1,
     overflow: 'auto',
     backgroundColor: theme.palette.background.default,
-    paddingTop: theme.spacing.unit * 3,
-    paddingBottom: theme.spacing.unit * 3,
+    paddingTop: theme.spacing(3),
+    paddingBottom: theme.spacing(3),
     paddingLeft: 0,
     paddingRight: 0,
     maxWidth: '100%',
     flexShrink: 1,
     flexBasis: 0,
     [theme.breakpoints.up('md')]: {
-      paddingLeft: theme.spacing.unit * 3,
-      paddingRight: theme.spacing.unit * 3,
+      paddingLeft: theme.spacing(3),
+      paddingRight: theme.spacing(3),
     },
   },
   toolbar: theme.mixins.toolbar,
