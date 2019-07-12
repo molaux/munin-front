@@ -1,6 +1,6 @@
 {
   "name": "munin-front",
-  "homepage": "/sandbox/munin-front",
+  "homepage": "/",
   "version": "0.2.1",
   "private": true,
   "dependencies": {
