@@ -354,7 +354,7 @@ class MuninLineChart extends Component {
         break
       default :
         if (log1000 !== 0) {
-          suffix = `⏨${log1000 * 3}`
+          suffix = `❨${log1000 * 3}`
         } else {
           suffix = ''
         }
@@ -472,7 +472,7 @@ class MuninLineChart extends Component {
           }
           label="Show min/max bounds"
         />] : '' }
-        <ResponsiveContainer width="100%" maxWidth="100%" height={400}>
+        <ResponsiveContainer width="99%" maxWidth="99%" height={400}>
           <ComposedChart
             data={Object.values(this.state.probe.data)}
             margin={{top: 0, right: 0, left: 20, bottom: 70}}
@@ -518,7 +518,8 @@ class MuninLineChart extends Component {
             <Tooltip
               wrapperStyle={{ fontSize: 10 }}
               formatter={this.formatLabel.bind(this)}
-              labelFormatter={time => (new Date(time * 1000)).toLocaleString()} />
+              labelFormatter={time => (new Date(time * 1000)).toLocaleString()} 
+              />
 
             {Object.keys(this.state.stacks).map((stack, index1) =>
               this.state.stacks[stack].filter(target => !this.hasPositive(this.state.probe, target) && target.visible).map((target, index2) => {
@@ -556,27 +557,27 @@ class MuninLineChart extends Component {
                         />
                       : [
                         <Area
+                          type='linear'
+                          key={`minmax-negative-${target.name}`}
+                          connectNulls={false}
+                          isAnimationActive={this.state.animated}
+                          dataKey={`${target.name}.MIN_MAX[0]`}
+                          stroke="none"
+                          fill={Color(this.getColor(target)).alpha(0.2).lighten(0.1).string()}
+                          dot={false}
+                          name={`${(target.infos.label ? target.infos.label.value : target.name)} min / max bounds`}
+                        />,
+                        <Area
                             type='linear'
-                            key={`minmax-negative-${target.name}`}
+                            key={`minmax-positive-${target.name}`}
                             connectNulls={false}
                             isAnimationActive={this.state.animated}
-                            dataKey={`${target.name}.MIN_MAX[0]`}
+                            dataKey={`${target.name}.MIN_MAX[1]`}
                             stroke="none"
                             fill={Color(this.getColor(target)).alpha(0.2).lighten(0.1).string()}
                             dot={false}
                             name={`${(target.infos.label ? target.infos.label.value : target.name)} min / max bounds`}
-                          />,
-                          <Area
-                              type='linear'
-                              key={`minmax-positive-${target.name}`}
-                              connectNulls={false}
-                              isAnimationActive={this.state.animated}
-                              dataKey={`${target.name}.MIN_MAX[1]`}
-                              stroke="none"
-                              fill={Color(this.getColor(target)).alpha(0.2).lighten(0.1).string()}
-                              dot={false}
-                              name={`${(target.infos.label ? target.infos.label.value : target.name)} min / max bounds`}
-                            />
+                          />
                       ])
                     : null
                 ]
