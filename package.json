@@ -36,6 +36,7 @@
     "typeface-roboto": "0.0.54"
   },
   "scripts": {
+    "start-api-server": "node server/main.js",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",

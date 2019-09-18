@@ -1,0 +1,14 @@
+[Unit]
+Description=Munin Graphql Api API
+#Documentation=https://tobe
+After=network.target
+
+[Service]
+Environment=NODE_VERSION=12
+Type=simple
+User=node
+ExecStart=/home/node/.nvm/nvm-exec npm start-api-server --prefix /home/node/munin-front
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
