@@ -7,7 +7,7 @@ After=network.target
 Environment=NODE_VERSION=12
 Type=simple
 User=node
-ExecStart=/home/node/.nvm/nvm-exec npm start-api-server --prefix /home/node/munin-front
+ExecStart=/home/node/.nvm/nvm-exec npm run-script start-api-server --prefix /home/node/munin-front
 Restart=on-failure
 
 [Install]
