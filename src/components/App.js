@@ -25,7 +25,6 @@ import TimerOffIcon from '@material-ui/icons/TimerOff';
 import Hidden from '@material-ui/core/Hidden';
 import IconButton from '@material-ui/core/IconButton';
 
-import { ThemeProvider } from '@material-ui/styles'
 import { createMuiTheme } from '@material-ui/core'
 import { MuiPickersUtilsProvider, DateTimePicker } from '@material-ui/pickers'
 import KeyboardArrowLeft from '@material-ui/icons/KeyboardArrowLeft'
@@ -44,7 +43,7 @@ import Center from './ui/Center'
 
 // import hideOnScroll from '../lib/hideOnScroll'
 
-import { withStyles } from '@material-ui/core/styles'
+import { withStyles, ThemeProvider } from '@material-ui/core/styles'
 import classNames from 'classnames'
 import { withRouter } from 'react-router-dom'
 
