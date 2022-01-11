@@ -88,7 +88,15 @@ const resolvers = {
     })
   },
   Probe: {
-    infos: (obj) => munin.describe(obj.domain, obj.host, obj.name),
+    //infos: (obj) => munin.describe(obj.domain, obj.host, obj.name),
+    infos: (obj) => ({
+	graph_title: { value: '' },
+	graph_vlabel: { value: '' },
+        graph_category: { value: '' },
+        graph_info: { value: '' },
+        graph_order: { value: '' },
+        ...munin.describe(obj.domain, obj.host, obj.name)
+    }),
     targets: (obj) => munin.query(obj.domain, obj.host, obj.name)
       .then(data => data.map(name => ({
         domain: obj.domain,
@@ -104,7 +112,14 @@ const resolvers = {
     })
   },
   Target: {
-    infos: (obj) => munin.describe(obj.domain, obj.host, obj.probe, obj.name),
+    infos: (obj) => ({
+	graph_title: { value: '' },
+	graph_vlabel: { value: '' },
+        graph_category: { value: '' },
+        graph_info: { value: '' },
+        graph_order: { value: '' },
+        ...munin.describe(obj.domain, obj.host, obj.probe, obj.name)
+    }),
     state: (obj) => lastLimits[obj.domain] !== undefined
       && lastLimits[obj.domain] !== undefined
       && lastLimits[obj.domain][obj.host] !== undefined
@@ -121,7 +136,7 @@ const resolvers = {
   }
 }
 
-const options = { port: 4000 }
+const options = { host: '192.168.0.4', port: 4000 }
 const server = new GraphQLServer({ typeDefs, resolvers })
 server.use(compression())
 
