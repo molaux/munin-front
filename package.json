@@ -21,7 +21,7 @@
     "graphql-type-json": "^0.3.0",
     "graphql-yoga": "^1.18.0",
     "lodash.throttle": "^4.1.1",
-    "moment": "^2.24.0",
+    "moment": "^2.29.4",
     "munin-db": "^0.3.1",
     "react": "^16.8.6",
     "react-apollo": "^2.5.8",
